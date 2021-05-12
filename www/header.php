@@ -1,17 +1,27 @@
 <?php 
 # Nome do Arquivo
 $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
+
+session_start();
+$codaluno = $_SESSION['codaluno'];
+$codtipousuario = $_SESSION['codtipousuario'];
+$nome = $_SESSION['nome'];
+
+if ($arquivo != "index.php" and ! $codaluno) {
+	header('Location: index.php');
+}
+
 ?>
 <!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-	<title>estudos: conteúdo</title>
+	<title>prgGrader</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.min.css">
-	<script type="text/javascript" src="js/jquery.min.js"></script>
-	<script type="text/javascript" src="js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="js/prototype.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 	<style>
 		.option-button {
 		    height:100%;
@@ -41,17 +51,32 @@ $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>                        
 		</button>
-   		<a class="navbar-brand" href="#">Estudos</a>
+   		<a class="navbar-brand" href="#">prgGrader</a>
   	</div>
+	<?php if ($codtipousuario) { ?>
    	<div class="collapse navbar-collapse" id="myNavbar">
     	<ul class="nav navbar-nav">
-      		<li <?= ($arquivo == "index.php" ? 'class="active"' : ""); ?>><a href="index.php">Conteúdo</a></li>
-      		<li <?= ($arquivo == "cadcaderno.php" ? 'class="active"' : ""); ?>><a href="cadcaderno.php">Cadernos</a></li>
-      		<li <?= ($arquivo == "caddisciplina.php" ? 'class="active"' : ""); ?>><a href="caddisciplina.php">Disciplinas</a></li>
-      		<li <?= ($arquivo == "cadquestoes.php" ? 'class="active"' : ""); ?>><a href="cadquestoes.php">Questões</a></li>
-      		<!-- <li><a href="#">Matérias</a></li>-->
-      		<li <?= ($arquivo == "relatorio.php" ? 'class="active"' : ""); ?>><a href="relatorio.php">Relatórios</a></li>
+			<li><a href="tarefa.php">Início</a></li>
+			<?php if ($codtipousuario < 4) { ?>
+				<li><a href="cadcurso.php">Cursos</a></li>
+				<li><a href="cadturma.php">Turmas</a></li>
+				<li><a href="cadtarefa.php">Tarefas</a></li>
+			<?php } ?>      		
     	</ul>
+		<ul class="nav navbar-nav navbar-right">
+			<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span> Usuário <span class="caret"></span></a>
+			
+			
+			<ul class="dropdown-menu">
+			  <li><a href="#"><?php echo$nome; ?></a></li>
+			  <li><a href="altsenha.php">Alterar Senha</a></li>
+			</ul>			
+			
+			
+			<li><a href="index.php"><span class="glyphicon glyphicon-log-in"></span> Sair</a></li>
+			
+		</ul>
 	</div>
+	<?php } ?>
 </nav>
 <div class="container">
