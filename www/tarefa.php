@@ -6,7 +6,7 @@ $db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
-$codaluno = 1;
+#$codaluno = 1;
 #$_REQUEST['codaluno'];
 $codtarefaturmaaluno = @$_REQUEST['codtarefaturmaaluno'];
 $modo = @$_REQUEST['modo'];
@@ -45,7 +45,6 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetchArray(SQLITE3_ASSOC);
 
 	
-	#echo "<h2>Enviando arquivo...</h2>";
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
 
