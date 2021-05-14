@@ -17,7 +17,7 @@ function formTarefa($codtarefaturmaaluno) {
 	<form action="tarefa.php" method="post" enctype="multipart/form-data" class="form-inline">
 				<input type="hidden" name="modo" value="upload">
 				<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
-				<label for="arquivo">Selecione o arquivo a ser enviado:
+				<label for="arquivo">Selecione o arquivo a ser enviado:</label>
 				<input type="file" name="arquivo" id="arquivo" accept="*.zip" class="form-control">
 				<button type="submit" class="btn btn-primary">Enviar arquivo</button>
 	</form>
@@ -26,7 +26,7 @@ function formTarefa($codtarefaturmaaluno) {
 
 function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "select " .
-		"('../uploads/' || c.sigla || '/' || tu.sigla || '/' ||  t.sigla || tt.codtarefaturma ||   '/TTA' || tta.codtarefaturmaaluno) AS diretorio , " .
+		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
@@ -65,11 +65,17 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			#"rm !(arquivo.zip) -f && " .
 			"ls && " .
 			"unzip arquivo.zip && " .
+			"cp ../../../../solution.h . && " .
 			"ls && " .
-			"cxxtestgen --error-printer -o runner01.cpp solution.h && " .
-			"g++ -o runner01 runner01.cpp && " .
-			"./runner01";
+			"cxxtestgen --error-printer -o runner01.cpp solution.h 2>&1 && " .
+			"g++ -o runner01 runner01.cpp 2>&1 && " .
+			"./runner01 2>&1";
 	#echo $cmd;
+	#$txt = exec($cmd, $output, $return_var);
+	#var_dump($output);
+	#var_dump($return_var);
+	#echo $txt;
+	#echo '</pre>';
 	$output = shell_exec($cmd);
 	#echo "<pre>$output</pre>";
 
@@ -91,12 +97,17 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	# Success rate: 50%
 	
 	$comando = "UPDATE tarefaturmaaluno SET " .
-			"resultados = '$output' , " .
+			"resultados = :resultados , " .
 			"entregas = entregas + 1 , " .
 			"dataentrega = date('now'), " .
-			"nota = $nota " .
-			"WHERE codtarefaturmaaluno = $codtarefaturmaaluno";
+			"nota = :nota " .
+			"WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
+
+
 	$query = $db->prepare($comando);
+	$query->bindValue(':resultados', $output, SQLITE3_TEXT);
+	$query->bindValue(':nota', $nota, SQLITE3_INTEGER);
+	$query->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, SQLITE3_INTEGER);
 	if (! $query) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao salvar informações tarefa [001]!</div>";
 		return;
@@ -120,8 +131,10 @@ function listaTarefas($db, $codaluno) {
 		"t.sigla AS tarefasigla, ".
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla , " .
-		"tta.dataentrega, tta.entregas, tta.nota , " .
-		"tt.datainicio, tt.datafim " .
+		"STRFTIME('%d/%m/%Y', tta.dataentrega) as dataentrega, " .
+		"tta.entregas, tta.nota , " .
+		"STRFTIME('%d/%m/%Y', tt.datainicio) as datainicio, " .
+		"STRFTIME('%d/%m/%Y', tt.datafim) as datafim " .
 		"from " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
@@ -164,13 +177,18 @@ function listaTarefas($db, $codaluno) {
 
 function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	echo "<h2>Tarefa:</h2>";
+	#../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno
 	$cmd = "select " .
-		"('../uploads/' || c.sigla || '/' || tu.sigla || '/' ||  t.sigla || tt.codtarefaturma ||   '/TTA' || tta.codtarefaturmaaluno) AS diretorio , " .
+		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
-		"tu.sigla AS turmasigla , " .
-		"c.sigla AS cursosigla , " .
-		"tta.*, " .
-		"* from " .
+		"tu.descricao AS turma , " .
+		"c.descricao AS curso , " .
+		"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
+		"STRFTIME('%d/%m/%Y', datainicio) as datafim , " .
+		"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega2 , " .
+		"t.instrucoes , " .
+		"tta.* " .
+		"FROM " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
@@ -184,16 +202,19 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetchArray(SQLITE3_ASSOC);
 
 	echo "<table class='table'><tr>" .
-			"<td><b>CURSO:</b> $rowTarefaTurmaAluno[cursosigla]</td>".
-			"<td><b>TURMA:</b> $rowTarefaTurmaAluno[turmasigla]</td>".
+			"<td><b>CURSO:</b> $rowTarefaTurmaAluno[curso]</td>".
+			"<td><b>TURMA:</b> $rowTarefaTurmaAluno[turma]</td>".
+			"</tr><tr>" .
 			"<td><b>TAREFA:</b> $rowTarefaTurmaAluno[tarefasigla]</td>" .
-			"<td>$rowTarefaTurmaAluno[datainicio]</td>".
-			"<td>$rowTarefaTurmaAluno[datafim]</td>".
-			"<td>$rowTarefaTurmaAluno[dataentrega]</td>".
-			"<td>$rowTarefaTurmaAluno[entregas]</td>".
-			"<td>$rowTarefaTurmaAluno[nota]</td>".			
+			"<td><b>PRAZO DE: </b> $rowTarefaTurmaAluno[datainicio] <b>até</b> $rowTarefaTurmaAluno[datafim]</td>".
+			"</tr><tr>" .
+			"<td colspan='2'><b>Instruções:</b><br>" . nl2br($rowTarefaTurmaAluno['instrucoes']) . "</td>" .
+			"</tr><tr>" .
+			"<td><b>Último envio:<b> $rowTarefaTurmaAluno[dataentrega2]</td>".
+			"<td><b>Envios:</b> $rowTarefaTurmaAluno[entregas]</td>".
+			"</tr><tr>" .
+			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaAluno[nota]</td>".			
 			"</tr></table>";
-
 	formTarefa($codtarefaturmaaluno);
 	
 	echo "<h3>Resultado último envio:</h3>";
