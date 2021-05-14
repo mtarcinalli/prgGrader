@@ -12,7 +12,7 @@ $codtarefaturmaaluno = @$_REQUEST['codtarefaturmaaluno'];
 $modo = @$_REQUEST['modo'];
 
 
-function formTarefa($codtarefaturmaaluno) {
+function formTarefa($codtarefaturmaaluno, $codaluno) {
 	?>
 	<form action="tarefa.php" method="post" enctype="multipart/form-data" class="form-inline">
 				<input type="hidden" name="modo" value="upload">
@@ -176,7 +176,6 @@ function listaTarefas($db, $codaluno) {
 }
 
 function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
-	echo "<h2>Tarefa:</h2>";
 	#../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno
 	$cmd = "select " .
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
@@ -200,7 +199,10 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 
 	$tblTarefaTurmaAluno = $db->query($cmd);
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetchArray(SQLITE3_ASSOC);
+	if (! $rowTarefaTurmaAluno)
+		return;
 
+	echo "<h2>Tarefa:</h2>";
 	echo "<table class='table'><tr>" .
 			"<td><b>CURSO:</b> $rowTarefaTurmaAluno[curso]</td>".
 			"<td><b>TURMA:</b> $rowTarefaTurmaAluno[turma]</td>".
@@ -215,7 +217,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"</tr><tr>" .
 			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaAluno[nota]</td>".			
 			"</tr></table>";
-	formTarefa($codtarefaturmaaluno);
+	formTarefa($codtarefaturmaaluno, $codaluno);
 	
 	echo "<h3>Resultado último envio:</h3>";
 	echo "<pre>$rowTarefaTurmaAluno[resultados]</pre>";

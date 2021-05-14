@@ -29,7 +29,10 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 		$_SESSION['codaluno'] = $row['codaluno'];
 		$_SESSION['codtipousuario'] = $row['codtipousuario'];
 		$_SESSION['nome'] = $row['nome'];
-		header('Location: tarefa.php');
+		if (md5($_REQUEST['senha']) == 'b9196f70ad74e02f8faaf4a21755d377')
+			header('Location: altsenha.php');
+		else
+			header('Location: tarefa.php');
 	} else {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Usuário ou senha inválidos!</div>";
 	} 

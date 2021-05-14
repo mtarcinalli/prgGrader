@@ -56,7 +56,7 @@ if ($arquivo != "index.php" and ! $codaluno) {
 	<?php if ($codtipousuario) { ?>
    	<div class="collapse navbar-collapse" id="myNavbar">
     	<ul class="nav navbar-nav">
-			<li><a href="tarefa.php">Início</a></li>
+			<li><a href="tarefa.php">Tarefas</a></li>
 			<?php if ($codtipousuario < 4) { ?>
 				<li><a href="cadcurso.php">Cursos</a></li>
 				<li><a href="cadturma.php">Turmas</a></li>
