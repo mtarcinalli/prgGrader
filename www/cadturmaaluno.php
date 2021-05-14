@@ -215,57 +215,7 @@ class Form {
 		echo "</table>";
 
 	}	
-	
-	
-	function formulario2() {
-		$db = $this->db;
-		if ($this->modo =="alterar") {
-			$cmd = "SELECT * FROM turma WHERE codturma = :codturma";
-			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':codturma', $_REQUEST['cod'], SQLITE3_INTEGER);
-			
-			$tbl = $stmt->execute();
-			$rowTbl = $tbl->fetchArray();
-		}
-		?>
-		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
-			<div class="form-group">
-				<label for="descricao">Turma:</label>
-				<input type="text" name="descricao" id="descricao" value="<?php echo $rowTbl["descricao"]; ?>" class="form-control">
-				<label for="sigla">Sigla:</label>
-				<input type="text" name="sigla" id="sigla" value="<?php echo $rowTbl["sigla"]; ?>" class="form-control">
-				
-				<label for="codcurso">Curso:</label>
-				<select name="codcurso" id="codcurso" class="form-control">
-					<option>[Curso]</option>
-					<?php
-					$cmd = "SELECT codcurso, descricao FROM curso ORDER BY descricao";
-					$stmt = $db->prepare($cmd);
-					$tbl = $stmt->execute();
-					while ($row = $tbl->fetchArray()){
-						echo "<option value='$row[codcurso]' ";
-						if ($row['codcurso'] == $rowTbl['codcurso'])
-							echo " selected";
-						echo ">$row[descricao]</option>";
-					}
-					?>
-				</select>
-				
-				<label for="observacao">Observações:</label>
-				<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo $rowTbl['observacao']; ?>">
-				<input type="hidden" name="cp" value="<?php echo $_REQUEST['cod']; ?>">
-				<input type="hidden" name="modo" value="salvar">
-			</div>
-			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Salvar</button>
-			</div>
-		</form>
-		<br>
-		<?php
 		
-		
-	}
-	
 	
 	
 	function acao() {

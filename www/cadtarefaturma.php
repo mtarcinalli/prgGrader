@@ -40,34 +40,43 @@ class Form {
 		$tbl = $stmt->execute();
 		$row = $tbl->fetchArray();
 		$codtarefaturma = $row[0];
-		print_r($codtarefaturma);
+
+		$cmd = "SELECT codcurso FROM turma WHERE codturma = :codturma";
+		$stmt = $db->prepare($cmd);
+		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
+		$tbl = $stmt->execute();
+		$row = $tbl->fetchArray();
+		$codcurso = $row[0];
 
 		$cmd = "SELECT codaluno FROM turmaaluno WHERE codturma = :codturma";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
-		while ($row = $tbl->fetchArray()) {
-			#echo "<pre>" . print_r($row, true) . "</pre>";
+		$tblAlunos = $stmt->execute();
+		while ($rowAluno = $tblAlunos->fetchArray()) {
 			$cmd = "INSERT INTO tarefaturmaaluno " .
 					"(codtarefaturma, codaluno) " .
 					"VALUES " .
 					"(:codtarefaturma, :codaluno)";
 			$stmt = $db->prepare($cmd);
 			$stmt->bindValue(':codtarefaturma', $codtarefaturma, SQLITE3_INTEGER);
-			$stmt->bindValue(':codaluno', $row['codaluno'], SQLITE3_INTEGER);
+			$stmt->bindValue(':codaluno', $rowAluno['codaluno'], SQLITE3_INTEGER);
 			$ok = $stmt->execute();
 
+			$cmd = "SELECT max(codtarefaturmaaluno) FROM tarefaturmaaluno";
+			$stmt = $db->prepare($cmd);
+			$tbl = $stmt->execute();
+			$row = $tbl->fetchArray();
+			$codtarefaturmaaluno = $row[0];
+
+			$cmd = "mkdir -p ../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno";
+			$output = shell_exec($cmd);
 		}
-
-
 
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
-		
-		
 	}
 	
 	function excluir() {
@@ -186,6 +195,7 @@ class Form {
 				"<th>Fim</th>" .
 				"<th>Observações</th>" .
 				"</tr>";
+
 
 		while ($row = $tbl->fetchArray()) {
 			echo "<tr>";

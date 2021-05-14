@@ -75,7 +75,7 @@ class Formulario {
 				"t.*, " .
 				"c.descricao as curso " .
 				"FROM turma t " .
-				"INNER JOIN curso c ON t.codcurso = c.codcurso " .
+				"LEFT JOIN curso c ON t.codcurso = c.codcurso " .
 				"ORDER BY sigla desc";
 		$tbl = $db->query($cmd);
 
