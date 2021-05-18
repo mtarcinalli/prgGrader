@@ -177,7 +177,12 @@ class Form {
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT " .
-				"tt.* , " .
+				"tt.codturma , " .
+				"tt.codtarefa , " .
+				"tt.codtarefaturma , " .
+				"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
+				"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
+				"tt.observacao , " .
 				"t.descricao AS turma " .
 				"FROM tarefaturma tt " .
 				"INNER JOIN turma t ON t.codturma = tt.codturma " .
@@ -213,7 +218,10 @@ class Form {
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
 						$cmd = "SELECT " .
-								"tta.*, a.nome " .
+								"a.nome , " .
+								"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega , " .
+								"tta.entregas , " .
+								"tta.nota " .
 								"FROM tarefaturmaaluno tta " .
 								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
 								"WHERE codtarefaturma =  :codtarefaturma " . 
@@ -221,9 +229,23 @@ class Form {
 						$stmt = $db->prepare($cmd);
 						$stmt->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
 						$tblAlunos = $stmt->execute();
+						echo "<table class=\"table table-striped\">" .
+							"<tr>" .
+							"<th>Aluno</th>" .
+							"<th>Data</th>" .
+							"<th>Entregas</th>" .
+							"<th>Nota</th>" .
+							"</tr>";
+
 						while ($rowAluno = $tblAlunos->fetchArray()) {
-							echo "$rowAluno[nome]<br>";
+							echo "<tr>" .
+									"<td>$rowAluno[nome]</td>" .
+									"<td>$rowAluno[dataentrega]</td>" .
+									"<td>$rowAluno[entregas]</td>" .
+									"<td>$rowAluno[nota]</td>" .
+									"</tr>";
 						}
+						echo "</table>";
 						?>
 					</div>
 				</td>
