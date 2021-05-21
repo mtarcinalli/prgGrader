@@ -27,6 +27,7 @@ function formTarefa($codtarefaturmaaluno, $codaluno) {
 function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "select " .
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
+		"tt.codtarefa , " .
 		"t.sigla AS tarefasigla, ".
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
@@ -47,6 +48,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
+	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
 
 	$files = glob($uploaddir . "*");
 	foreach($files as $file){
@@ -65,7 +67,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			#"rm !(arquivo.zip) -f && " .
 			"ls && " .
 			"unzip arquivo.zip && " .
-			"cp ../../../../solution.h . && " .
+			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution.h . && " .
 			"ls && " .
 			"cxxtestgen --error-printer -o runner01.cpp solution.h 2>&1 && " .
 			"g++ -o runner01 runner01.cpp 2>&1 && " .
