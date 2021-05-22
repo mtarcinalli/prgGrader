@@ -87,7 +87,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	#echo "-1:" . substr($output, -2);
 
 	if (substr($output, -1) == "%") {
-		$nota = 50;
+		$nota = substr( substr($output, -4), 0, -1);
 	} elseif (substr($output, -5) == "..OK!") {
 		$nota = 100;
 	} else {
