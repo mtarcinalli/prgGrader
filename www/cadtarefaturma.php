@@ -195,6 +195,7 @@ class Form {
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
 				"<th></th>" .
+				"<th>Cod</th>" .
 				"<th>Turma</th>" .
 				"<th>Início</th>" .
 				"<th>Fim</th>" .
@@ -205,7 +206,8 @@ class Form {
 		while ($row = $tbl->fetchArray()) {
 			echo "<tr>";
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\">del</a> </td>";
-			echo "<td>$row[turma]</td>";
+			echo "<td>$row[codtarefaturma]</td>";
+			echo "<td>$row[turma]($row[codturma])</td>";
 			echo "<td>$row[datainicio]</td>";
 			echo "<td>$row[datafim]</td>";
 			echo "<td>$row[observacao]</td>";
@@ -218,9 +220,11 @@ class Form {
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
 						$cmd = "SELECT " .
+								"tta.codtarefaturmaaluno , " .
 								"a.nome , " .
 								"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega , " .
 								"tta.entregas , " .
+								"tta.resultados , " .
 								"tta.nota " .
 								"FROM tarefaturmaaluno tta " .
 								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
@@ -231,6 +235,7 @@ class Form {
 						$tblAlunos = $stmt->execute();
 						echo "<table class=\"table table-striped\">" .
 							"<tr>" .
+							"<th>Cod</th>" .
 							"<th>Aluno</th>" .
 							"<th>Data</th>" .
 							"<th>Entregas</th>" .
@@ -239,11 +244,15 @@ class Form {
 
 						while ($rowAluno = $tblAlunos->fetchArray()) {
 							echo "<tr>" .
+									"<td>$rowAluno[codtarefaturmaaluno]</td>" .
 									"<td>$rowAluno[nome]</td>" .
 									"<td>$rowAluno[dataentrega]</td>" .
 									"<td>$rowAluno[entregas]</td>" .
 									"<td>$rowAluno[nota]</td>" .
 									"</tr>";
+							if ($rowAluno["resultados"]) {
+								echo "<tr><td colspan='5'><pre>$rowAluno[resultados]</pre></td></tr>";
+							}
 						}
 						echo "</table>";
 						?>
