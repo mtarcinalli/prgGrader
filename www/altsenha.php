@@ -1,4 +1,5 @@
-<?php require_once 'header.php';
+<?php 
+require_once 'header.php';
 
 $db = new SQLite3('../db/pgrader.db');
 if (! $db)

@@ -1,16 +1,12 @@
-<?php require_once 'header.php';
-
-#error_reporting(E_ALL);
+<?php
+require_once 'header.php';
 
 $db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
-#$codaluno = 1;
-#$_REQUEST['codaluno'];
 $codtarefaturmaaluno = @$_REQUEST['codtarefaturmaaluno'];
 $modo = @$_REQUEST['modo'];
-
 
 function formTarefa($codtarefaturmaaluno, $codaluno) {
 	?>
@@ -178,14 +174,13 @@ function listaTarefas($db, $codaluno) {
 }
 
 function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
-	#../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno
 	$cmd = "select " .
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
 		"tu.descricao AS turma , " .
 		"c.descricao AS curso , " .
 		"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
-		"STRFTIME('%d/%m/%Y', datainicio) as datafim , " .
+		"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
 		"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega2 , " .
 		"t.instrucoes , " .
 		"tta.* " .
@@ -210,7 +205,8 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"<td><b>TURMA:</b> $rowTarefaTurmaAluno[turma]</td>".
 			"</tr><tr>" .
 			"<td><b>TAREFA:</b> $rowTarefaTurmaAluno[tarefasigla]</td>" .
-			"<td><b>PRAZO DE: </b> $rowTarefaTurmaAluno[datainicio] <b>até</b> $rowTarefaTurmaAluno[datafim]</td>".
+			"<td><b>PRAZO DE: </b> $rowTarefaTurmaAluno[datainicio] ".
+			"<b>até</b> $rowTarefaTurmaAluno[datafim]</td>".
 			"</tr><tr>" .
 			"<td colspan='2'><b>Instruções:</b><br>" . nl2br($rowTarefaTurmaAluno['instrucoes']) . "</td>" .
 			"</tr><tr>" .
@@ -219,7 +215,14 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"</tr><tr>" .
 			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaAluno[nota]</td>".			
 			"</tr></table>";
-	formTarefa($codtarefaturmaaluno, $codaluno);
+	$de = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datainicio"]);
+	$ate = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datafim"]);
+	$hoje = date_create_from_format('d/m/Y', date('d/m/Y'));
+	if ($hoje < $de or $hoje > $ate) {
+		echo "<h4>Fora do prazo de envio!</h4>";
+	} else {
+		formTarefa($codtarefaturmaaluno, $codaluno);
+	}
 	
 	echo "<h3>Resultado último envio:</h3>";
 	echo "<pre>$rowTarefaTurmaAluno[resultados]</pre>";
