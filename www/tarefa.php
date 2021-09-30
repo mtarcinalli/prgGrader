@@ -62,7 +62,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "cd $uploaddir && ls && echo '---' && " .
 			#"rm !(arquivo.zip) -f && " .
 			"ls && " .
-			"unzip arquivo.zip && " .
+			"unzip -j arquivo.zip && " .
 			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution.h . && " .
 			"ls && " .
 			"cxxtestgen --error-printer --have-eh -o runner01.cpp solution.h 2>&1 && " .
