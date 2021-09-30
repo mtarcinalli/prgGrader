@@ -215,7 +215,7 @@ class Form {
 			?>
 			<tr>
 				<td></td>
-				<td colspan="4">
+				<td colspan="5">
 					<a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4>
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
@@ -233,7 +233,7 @@ class Form {
 						$stmt = $db->prepare($cmd);
 						$stmt->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
 						$tblAlunos = $stmt->execute();
-						echo "<table class=\"table table-striped\">" .
+						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
 							"<th>Cod</th>" .
 							"<th>Aluno</th>" .
@@ -251,7 +251,11 @@ class Form {
 									"<td>$rowAluno[nota]</td>" .
 									"</tr>";
 							if ($rowAluno["resultados"]) {
-								echo "<tr><td colspan='5'><pre>$rowAluno[resultados]</pre></td></tr>";
+								echo "<tr><td colspan='5'><pre>";
+								echo "Diretório: TURMA$row[codturma]/TTURMA$row[codtarefaturma]/TTALUNO$rowAluno[codtarefaturmaaluno]\n";
+								echo $rowAluno["resultados"];
+								
+								echo "</pre></td></tr>";
 							}
 						}
 						echo "</table>";
