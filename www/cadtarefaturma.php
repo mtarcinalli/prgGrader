@@ -244,7 +244,11 @@ class Form {
 
 						while ($rowAluno = $tblAlunos->fetchArray()) {
 							echo "<tr>" .
-									"<td>$rowAluno[codtarefaturmaaluno]</td>" .
+									"<td>" .
+									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmaaluno]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
+									"$rowAluno[codtarefaturmaaluno]" .
+									"</a>" .
+									"</td>" .
 									"<td>$rowAluno[nome]</td>" .
 									"<td>$rowAluno[dataentrega]</td>" .
 									"<td>$rowAluno[entregas]</td>" .
