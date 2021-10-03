@@ -143,10 +143,8 @@ class Form {
 										$arq = trim(substr($linha, 13));
 										echo "$arq:<br><br>";
 										
-
-										#$arq = $diretorio 
-										echo file_get_contents( "$diretorio/$arq");
-										echo "</pre></td></tr>";
+										$contents = htmlentities(file_get_contents( "$diretorio/$arq"));
+										echo "$contents</pre></td></tr>";
 									}
 								} 
 
