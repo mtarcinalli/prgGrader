@@ -9,12 +9,12 @@ class Form {
 	private $arquivo;
 	
 	
-	function __construct($arquivo) {
+	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = new SQLite3('../db/pgrader.db');
-		if (! $this->db)
-			echo "não abriu bd";
+		$this->db = $db; #new SQLite3('../db/pgrader.db');
+		#if (! $this->db)
+		#	echo "não abriu bd";
 		$this->acao();
 	}
 	
@@ -23,10 +23,10 @@ class Form {
 		$db = $this->db;
 		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
-		$rowTbl = $tbl->fetchArray();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->execute();
+		$rowTbl = $tbl->fetch();
 
 		echo "<table class='table'>" .
 				"<tr>" .
@@ -54,8 +54,8 @@ class Form {
 				"tt.codturma , " .
 				"tt.codtarefa , " .
 				"tt.codtarefaturma , " .
-				"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
-				"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
+				"to_char(datainicio, 'DD/MM/YY') as datainicio , " .
+				"to_char(datafim, 'DD/MM/YY') as datafim , " .
 				"tt.observacao , " .
 				"t.codcurso , " .
 				"t.descricao AS turma " .
@@ -64,10 +64,10 @@ class Form {
 				"INNER JOIN tarefaturmaaluno tta ON tt.codtarefaturma = tta.codtarefaturma AND tta.codtarefaturmaaluno = :codtarefaturmaaluno " .
 				"WHERE tt.codtarefa = :codtarefa ";
 				#"ORDER BY nome asc";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$stmt->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
@@ -79,7 +79,7 @@ class Form {
 				"</tr>";
 
 
-		while ($row = $tbl->fetchArray()) {
+		while ($row = $tbl->fetch()) {
 			echo "<tr>";
 			echo "<td>$row[codtarefaturma]</td>";
 			echo "<td>$row[turma]($row[codturma])</td>";
@@ -96,7 +96,7 @@ class Form {
 						$cmd = "SELECT " .
 								"tta.codtarefaturmaaluno , " .
 								"a.nome , " .
-								"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega , " .
+								"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega , " .
 								"tta.entregas , " .
 								"tta.resultados , " .
 								"tta.nota " .
@@ -105,10 +105,10 @@ class Form {
 								"WHERE codtarefaturma =  :codtarefaturma " . 
 								"and tta.codtarefaturmaaluno = :codtarefaturmaaluno " .
 								"ORDER BY nome ASC";
-						$stmt = $db->prepare($cmd);
-						$stmt->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
-						$stmt->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
-						$tblAlunos = $stmt->execute();
+						$tblAlunos = $db->prepare($cmd);
+						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
+						$tblAlunos->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+						$tblAlunos->execute();
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
 							"<th>Cod</th>" .
@@ -118,7 +118,7 @@ class Form {
 							"<th>Nota</th>" .
 							"</tr>";
 
-						while ($rowAluno = $tblAlunos->fetchArray()) {
+						while ($rowAluno = $tblAlunos->fetch()) {
 							echo "<tr>" .
 									"<td>$rowAluno[codtarefaturmaaluno]</td>" .
 									"<td>$rowAluno[nome]</td>" .
@@ -182,7 +182,7 @@ class Form {
 
 #error_reporting(E_ALL);
 
-$frm = new Form($arquivo);
+$frm = new Form($arquivo, $db);
 
 
 

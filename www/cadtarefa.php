@@ -1,7 +1,6 @@
 <?php require_once 'header.php';
 
 
-
 class Formulario {
 	
 	private $db;
@@ -9,12 +8,12 @@ class Formulario {
 	private $arquivo;
 	
 	
-	function __construct($arquivo) {
+	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = new SQLite3('../db/pgrader.db');
-		if (! $this->db)
-			echo "não abriu bd";
+		$this->db = $db; #new SQLite3('../db/pgrader.db');
+		#if (! $this->db
+		#	echo "não abriu bd";
 		$this->acao();
 	}
 	
@@ -46,7 +45,7 @@ class Formulario {
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], SQLITE3_TEXT);
 		$ok = $stmt->execute();
 		#echo "dbc: " . $stmt->rowCount();
-		if ($ok && $db->changes()) {
+		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
@@ -75,7 +74,8 @@ class Formulario {
 				"t.* " .
 				"FROM tarefa t " .
 				"ORDER BY sigla desc";
-		$tbl = $db->query($cmd);
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
@@ -88,7 +88,7 @@ class Formulario {
 				"<th>Observações</th>" .
 				"</tr>";
 
-		while ($row = $tbl->fetchArray()) {
+		while ($row = $tbl->fetch()) {
 			echo "<tr>";
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\">del</a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\">edt</a> </td>";
@@ -107,11 +107,10 @@ class Formulario {
 		$db = $this->db;
 		if ($this->modo =="alterar") {
 			$cmd = "SELECT * FROM tarefa WHERE codtarefa = :codtarefa";
-			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':codtarefa', $_REQUEST['cod'], SQLITE3_INTEGER);
-			
-			$tbl = $stmt->execute();
-			$rowTbl = $tbl->fetchArray();
+			$tbl = $db->prepare($cmd);
+			$tbl->bindValue(':codtarefa', $_REQUEST['cod']);
+			$tbl->execute();
+			$rowTbl = $tbl->fetch();
 		}
 		?>
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
@@ -164,7 +163,7 @@ class Formulario {
 
 #error_reporting(E_ALL);
 
-$frm = new Formulario($arquivo);
+$frm = new Formulario($arquivo, $db);
 
 
 

@@ -9,12 +9,13 @@ class Form {
 	private $arquivo;
 	
 	
-	function __construct($arquivo) {
+	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = new SQLite3('../db/pgrader.db');
-		if (! $this->db)
-			echo "não abriu bd";
+		$this->db = $db;
+			#new SQLite3('../db/pgrader.db');
+		#if (! $this->db)
+		#	echo "não abriu bd";
 		$this->acao();
 	}
 	
@@ -28,31 +29,31 @@ class Form {
 			"(:codtarefa, :codturma, :datainicio, :datafim, :observacao) ";
 		$stmt = $db->prepare($cmd);
 
-		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
-		$stmt->bindValue(':datainicio', $_REQUEST['datainicio'], SQLITE3_TEXT);
-		$stmt->bindValue(':datafim', $_REQUEST['datafim'], SQLITE3_TEXT);
-		$stmt->bindValue(':observacao', $_REQUEST['observacao'], SQLITE3_TEXT);
+		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa']);
+		$stmt->bindValue(':codturma', $_REQUEST['codturma']);
+		$stmt->bindValue(':datainicio', $_REQUEST['datainicio']);
+		$stmt->bindValue(':datafim', $_REQUEST['datafim']);
+		$stmt->bindValue(':observacao', $_REQUEST['observacao']);
 		$ok = $stmt->execute();
 
 		$cmd = "SELECT max(codtarefaturma) FROM tarefaturma";
-		$stmt = $db->prepare($cmd);
-		$tbl = $stmt->execute();
-		$row = $tbl->fetchArray();
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+		$row = $tbl->fetch();
 		$codtarefaturma = $row[0];
 
 		$cmd = "SELECT codcurso FROM turma WHERE codturma = :codturma";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
-		$row = $tbl->fetchArray();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
+		$tbl->execute();
+		$row = $tbl->fetch();
 		$codcurso = $row[0];
 
 		$cmd = "SELECT codaluno FROM turmaaluno WHERE codturma = :codturma";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
-		$tblAlunos = $stmt->execute();
-		while ($rowAluno = $tblAlunos->fetchArray()) {
+		$tblAlunos = $db->prepare($cmd);
+		$tblAlunos->bindValue(':codturma', $_REQUEST['codturma']);
+		$tblAlunos->execute();
+		while ($rowAluno = $tblAlunos->fetch()) {
 			$cmd = "INSERT INTO tarefaturmaaluno " .
 					"(codtarefaturma, codaluno) " .
 					"VALUES " .
@@ -63,9 +64,9 @@ class Form {
 			$ok = $stmt->execute();
 
 			$cmd = "SELECT max(codtarefaturmaaluno) FROM tarefaturmaaluno";
-			$stmt = $db->prepare($cmd);
-			$tbl = $stmt->execute();
-			$row = $tbl->fetchArray();
+			$tbl = $db->prepare($cmd);
+			$tbl->execute();
+			$row = $tbl->fetch();
 			$codtarefaturmaaluno = $row[0];
 
 			$cmd = "mkdir -p ../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno";
@@ -99,10 +100,10 @@ class Form {
 		$db = $this->db;
 		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
-		$rowTbl = $tbl->fetchArray();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->execute();
+		$rowTbl = $tbl->fetch();
 
 		
 		echo "<table class='table'>" .
@@ -131,9 +132,9 @@ class Form {
 						<option>[Turma]</option>
 						<?php
 						$cmd = "SELECT codturma, descricao, sigla FROM turma ORDER BY sigla DESC";
-						$stmt = $db->prepare($cmd);
-						$tbl = $stmt->execute();
-						while ($row = $tbl->fetchArray()){
+						$tbl = $db->prepare($cmd);
+						$tbl->execute();
+						while ($row = $tbl->fetch()){
 							echo "<option value='$row[codturma]' ";
 							if ($row['codturma'] == $rowTbl['codturma'])
 								echo " selected";
@@ -180,17 +181,17 @@ class Form {
 				"tt.codturma , " .
 				"tt.codtarefa , " .
 				"tt.codtarefaturma , " .
-				"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
-				"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
+				"to_char(datainicio, 'DD/MM/YY') as datainicio , " .
+				"to_char(datafim, 'DD/MM/YY') as datafim , " .
 				"tt.observacao , " .
 				"t.descricao AS turma " .
 				"FROM tarefaturma tt " .
 				"INNER JOIN turma t ON t.codturma = tt.codturma " .
 				"WHERE tt.codtarefa = :codtarefa ";
 				#"ORDER BY nome asc";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$tbl = $stmt->execute();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa']);
+		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
@@ -203,7 +204,7 @@ class Form {
 				"</tr>";
 
 
-		while ($row = $tbl->fetchArray()) {
+		while ($row = $tbl->fetch()) {
 			echo "<tr>";
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\">del</a> </td>";
 			echo "<td>$row[codtarefaturma]</td>";
@@ -222,7 +223,7 @@ class Form {
 						$cmd = "SELECT " .
 								"tta.codtarefaturmaaluno , " .
 								"a.nome , " .
-								"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega , " .
+								"to_char(dataentrega, 'DD/MM/YY') as dataentrega , " .
 								"tta.entregas , " .
 								"tta.resultados , " .
 								"tta.nota " .
@@ -230,9 +231,9 @@ class Form {
 								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
 								"WHERE codtarefaturma =  :codtarefaturma " . 
 								"ORDER BY nome ASC";
-						$stmt = $db->prepare($cmd);
-						$stmt->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
-						$tblAlunos = $stmt->execute();
+						$tblAlunos = $db->prepare($cmd);
+						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
+						$tblAlunos->execute();
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
 							"<th>Cod</th>" .
@@ -242,7 +243,7 @@ class Form {
 							"<th>Nota</th>" .
 							"</tr>";
 
-						while ($rowAluno = $tblAlunos->fetchArray()) {
+						while ($rowAluno = $tblAlunos->fetch()) {
 							echo "<tr>" .
 									"<td>" .
 									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmaaluno]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
@@ -254,7 +255,7 @@ class Form {
 									"<td>$rowAluno[entregas]</td>" .
 									"<td>$rowAluno[nota]</td>" .
 									"</tr>";
-							if ($rowAluno["resultados"]) {
+							if (false && $rowAluno["resultados"]) {
 								echo "<tr><td colspan='5'><pre>";
 								echo "Diretório: TURMA$row[codturma]/TTURMA$row[codtarefaturma]/TTALUNO$rowAluno[codtarefaturmaaluno]\n";
 								echo $rowAluno["resultados"];
@@ -304,7 +305,7 @@ class Form {
 
 #error_reporting(E_ALL);
 
-$frm = new Form($arquivo);
+$frm = new Form($arquivo, $db);
 
 
 

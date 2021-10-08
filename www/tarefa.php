@@ -1,7 +1,7 @@
 <?php
 require_once 'header.php';
 
-$db = new SQLite3('../db/pgrader.db');
+#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
@@ -38,8 +38,9 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
 	#echo "cmd: $cmd";
 
-	$tblTarefaTurmaAluno = $db->query($cmd);
-	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetchArray(SQLITE3_ASSOC);
+	$tblTarefaTurmaAluno = $db->prepare($cmd);
+	$tblTarefaTurmaAluno->execute();
+	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
 
 	
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
@@ -77,19 +78,20 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$output = shell_exec($cmd);
 	#echo "<pre>$output</pre>";
 
-	$output = substr($output, 0, -1);
+	#$output = substr($output, 0, -1);
 	#echo "-4:" . substr($output, -4);
 	#echo "<br>";
 	#echo "-1:" . substr($output, -2);
 
 	if (substr($output, -1) == "%") {
-		$nota = substr( substr($output, -4), 0, -1);
+		$nota = substr( substr($output, -3), 0, -1);
 	} elseif (substr($output, -5) == "..OK!") {
 		$nota = 100;
 	} else {
 		$nota = 0;
 	}
 
+	#echo "<pre>-$nota-</pre>";
 	
 	# Running cxxtest tests (2 tests)..OK!
 	# Success rate: 50%
@@ -100,12 +102,10 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"dataentrega = date('now'), " .
 			"nota = :nota " .
 			"WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
-
-
 	$query = $db->prepare($comando);
-	$query->bindValue(':resultados', $output, SQLITE3_TEXT);
-	$query->bindValue(':nota', $nota, SQLITE3_INTEGER);
-	$query->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, SQLITE3_INTEGER);
+	$query->bindValue(':resultados', $output, PDO::PARAM_STR);
+	$query->bindValue(':nota', $nota, PDO::PARAM_INT);
+	$query->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
 	if (! $query) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao salvar informações tarefa [001]!</div>";
 		return;
@@ -129,11 +129,11 @@ function listaTarefas($db, $codaluno) {
 		"t.sigla AS tarefasigla, ".
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla , " .
-		"STRFTIME('%d/%m/%Y', tta.dataentrega) as dataentrega, " .
+		"to_char(tta.dataentrega, 'DD/MM/YYYY') as dataentrega, " .
 		"tta.entregas, tta.nota , " .
-		"STRFTIME('%d/%m/%Y', tt.datainicio) as datainicio, " .
-		"STRFTIME('%d/%m/%Y', tt.datafim) as datafim " .
-		"from " .
+		"to_char(tt.datainicio, 'DD/MM/YYYY') as datainicio, " .
+		"to_char(tt.datafim, 'DD/MM/YYYY') as datafim " .
+		"FROM " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
@@ -142,7 +142,8 @@ function listaTarefas($db, $codaluno) {
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
 		"where  tta.codaluno = $codaluno";
 	#echo "cmd: $cmd";
-	$tblTarefas = $db->query($cmd);
+	$tblTarefas = $db->prepare($cmd);
+	$tblTarefas->execute();
 
 	echo "<table class=\"table table-striped\">" .
 			"<tr>" .
@@ -156,7 +157,7 @@ function listaTarefas($db, $codaluno) {
 			"</tr>";
 
 
-	while ($rowTarefas = $tblTarefas->fetchArray(SQLITE3_ASSOC)) {
+	while ($rowTarefas = $tblTarefas->fetch()) {
 		echo "<tr>" .
 				"<td>$rowTarefas[cursosigla]</td>".
 				"<td>$rowTarefas[turmasigla]</td>".
@@ -179,9 +180,13 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"t.sigla AS tarefasigla, ".
 		"tu.descricao AS turma , " .
 		"c.descricao AS curso , " .
-		"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
-		"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
-		"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega2 , " .
+
+		"to_char(datainicio, 'DD/MM/YYYY') as datainicio, " .
+		"to_char(datafim, 'DD/MM/YYYY') as datafim, " .
+		"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega2, " .
+		#"STRFTIME('%d/%m/%Y', datainicio) as datainicio , " .
+		#"STRFTIME('%d/%m/%Y', datafim) as datafim , " .
+		#"STRFTIME('%d/%m/%Y', dataentrega) as dataentrega2 , " .
 		"t.instrucoes , " .
 		"tta.* " .
 		"FROM " .
@@ -194,8 +199,9 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
 	#echo "cmd: $cmd";
 
-	$tblTarefaTurmaAluno = $db->query($cmd);
-	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetchArray(SQLITE3_ASSOC);
+	$tblTarefaTurmaAluno = $db->prepare($cmd);
+	$tblTarefaTurmaAluno->execute();
+	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
 	if (! $rowTarefaTurmaAluno)
 		return;
 

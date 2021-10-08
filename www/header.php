@@ -1,4 +1,5 @@
 <?php 
+require_once 'conectdb.php';
 # Nome do Arquivo
 $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
 

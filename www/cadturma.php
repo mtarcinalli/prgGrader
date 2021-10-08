@@ -12,7 +12,8 @@ class Formulario {
 	function __construct($arquivo) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = new SQLite3('../db/pgrader.db');
+		$this->db = $db;
+			#new SQLite3('../db/pgrader.db');
 		if (! $this->db)
 			echo "não abriu bd";
 		$this->acao();

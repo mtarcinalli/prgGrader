@@ -8,10 +8,11 @@ $_SESSION['nome'] = 0;
 $codtipousuario = 0;
 $codaluno = 0;
 
+#die;
 
 if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 
-	$db = new SQLite3('../db/pgrader.db');
+	#$db = new SQLite3('../db/pgrader.db');
 	if (! $db)
 		echo "não abriu bd";
 	
@@ -20,12 +21,12 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 			"WHERE email = :email " .
 			"AND senha = :senha";
 	
-	$stmt = $db->prepare($cmd);
-	$stmt->bindValue(':email', $_REQUEST['usuario'], SQLITE3_TEXT);
-	$stmt->bindValue(':senha', md5($_REQUEST['senha']), SQLITE3_TEXT);
-	$tblLogin = $stmt->execute();
+	$tblLogin = $db->prepare($cmd);
+	$tblLogin->bindParam(':email', $_REQUEST['usuario']);
+	$tblLogin->bindParam(':senha', md5($_REQUEST['senha']));
+	$tblLogin->execute();
 	
-	if ($row = $tblLogin->fetchArray(SQLITE3_ASSOC)) {
+	if ($row = $tblLogin->fetch()) {
 		$_SESSION['codaluno'] = $row['codaluno'];
 		$_SESSION['codtipousuario'] = $row['codtipousuario'];
 		$_SESSION['nome'] = $row['nome'];

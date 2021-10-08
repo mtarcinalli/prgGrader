@@ -19,7 +19,7 @@
 <?php
 #error_reporting(E_ALL);
 
-$db = new SQLite3('../db/pgrader.db');
+#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
@@ -67,7 +67,7 @@ echo "<table class=\"table table-striped\">" .
 		"<th>Observações</th>" .
 		"</tr>";
 
-while ($row = $tbl->fetchArray()) {
+while ($row = $tbl->fetch()) {
 	echo "<tr>";
 	echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcurso]'\">del</a> </td>";
 	echo "<td>$row[descricao]</td>" .
