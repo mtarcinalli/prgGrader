@@ -112,7 +112,7 @@ class Form {
 				"<td>$rowTbl[descricao]</td>" .
 				"<th>Sigla:</th>" .
 				"<td>$rowTbl[sigla]</td>" .
-				"<td><a href='cadtarefa,.php'>Voltar</a></td>" .
+				"<td><a href='cadtarefa.php'>Voltar</a></td>" .
 				"</tr><tr>" .
 				"<th>Instruções:</th>" .
 				"<td colspan='4'>" . nl2br($rowTbl['instrucoes']) . "</td>" .
