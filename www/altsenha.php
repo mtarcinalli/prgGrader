@@ -1,7 +1,7 @@
 <?php 
 require_once 'header.php';
 
-$db = new SQLite3('../db/pgrader.db');
+#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
@@ -11,10 +11,10 @@ $cmd = "select " .
 	"from " .
 	"aluno a " .
 	"WHERE codaluno = :codaluno";
-$stmt = $db->prepare($cmd);
-$stmt->bindValue(':codaluno', $codaluno, SQLITE3_INTEGER);
-$tblAluno = $stmt->execute();
-$rowAluno = $tblAluno->fetchArray(SQLITE3_ASSOC);
+$tblAluno = $db->prepare($cmd);
+$tblAluno->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+$tblAluno->execute();
+$rowAluno = $tblAluno->fetch();
 
 if ($_REQUEST['senha'] && $_REQUEST['senha2']) {
 	if ($_REQUEST['senha'] != $_REQUEST['senha2']) {
@@ -26,8 +26,8 @@ if ($_REQUEST['senha'] && $_REQUEST['senha2']) {
 			"senha = :senha " .
 			"WHERE codaluno = :codaluno";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codaluno', $codaluno, SQLITE3_INTEGER);
-		$stmt->bindValue(':senha', md5($_REQUEST['senha']), SQLITE3_TEXT);
+		$stmt->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+		$stmt->bindValue(':senha', md5($_REQUEST['senha']), PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Senha alterada com sucesso!</div>";
