@@ -75,13 +75,14 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	#var_dump($return_var);
 	#echo $txt;
 	#echo '</pre>';
-	$output = shell_exec($cmd);
+	$output = trim(shell_exec($cmd));
 	#echo "<pre>$output</pre>";
 
 	#$output = substr($output, 0, -1);
 	#echo "-4:" . substr($output, -4);
 	#echo "<br>";
 	#echo "-1:" . substr($output, -2);
+	#echo "kk" . substr($output, -5) . "kk";
 
 	if (substr($output, -1) == "%") {
 		$nota = substr( substr($output, -3), 0, -1);
