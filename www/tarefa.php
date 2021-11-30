@@ -131,7 +131,7 @@ function listaTarefas($db, $codaluno) {
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla , " .
 		"to_char(tta.dataentrega, 'DD/MM/YYYY') as dataentrega, " .
-		"tta.entregas, tta.nota , " .
+		"tta.entregas, tta.nota , tta.notafinal, " .
 		"to_char(tt.datainicio, 'DD/MM/YYYY') as datainicio, " .
 		"to_char(tt.datafim, 'DD/MM/YYYY') as datafim " .
 		"FROM " .
@@ -155,6 +155,7 @@ function listaTarefas($db, $codaluno) {
 			"<th>ENTREGA</th>" .
 			"<th>TENTATIVAS</th>" .
 			"<th>NOTA*</th>" .
+			"<th>NOTA FINAL</th>" .
 			"</tr>";
 
 
@@ -169,7 +170,8 @@ function listaTarefas($db, $codaluno) {
 				"<td>$rowTarefas[datafim]</td>".
 				"<td>$rowTarefas[dataentrega]</td>".
 				"<td>$rowTarefas[entregas]</td>".
-				"<td>$rowTarefas[nota]</td>".			
+				"<td>$rowTarefas[nota]</td>" .
+				#"<td>$rowTarefas[notafinal]</td>" .
 				"</tr>";
 	}
 	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>";

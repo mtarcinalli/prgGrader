@@ -13,9 +13,6 @@ class Form {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
 		$this->db = $db;
-			#new SQLite3('../db/pgrader.db');
-		#if (! $this->db)
-		#	echo "não abriu bd";
 		$this->acao();
 	}
 	
@@ -44,7 +41,7 @@ class Form {
 
 		$cmd = "SELECT codcurso FROM turma WHERE codturma = :codturma";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);
 		$tbl->execute();
 		$row = $tbl->fetch();
 		$codcurso = $row[0];
@@ -59,8 +56,8 @@ class Form {
 					"VALUES " .
 					"(:codtarefaturma, :codaluno)";
 			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':codtarefaturma', $codtarefaturma, SQLITE3_INTEGER);
-			$stmt->bindValue(':codaluno', $rowAluno['codaluno'], SQLITE3_INTEGER);
+			$stmt->bindValue(':codtarefaturma', $codtarefaturma, PDO::PARAM_INT);
+			$stmt->bindValue(':codaluno', $rowAluno['codaluno'], PDO::PARAM_INT);
 			$ok = $stmt->execute();
 
 			$cmd = "SELECT max(codtarefaturmaaluno) FROM tarefaturmaaluno";
@@ -84,7 +81,7 @@ class Form {
 		$db = $this->db;
 		$cmd = "DELETE FROM tarefaturma where codtarefaturma = :codtarefaturma";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], SQLITE3_INTEGER);
+		$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
 		$ok = $stmt->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
@@ -94,14 +91,42 @@ class Form {
 	}
 	
 	
-	
+	function salvarNotas() {
+		$db = $this->db;
+		$ok = true;
+		foreach ($_POST as $key => $value) {
+			if (substr($key, 0 ,3) == "nf-") {
+				if ($value != "") {
+					$cod = explode("-", $key);
+					$cmd = "UPDATE tarefaturmaaluno SET notafinal = :notafinal where codtarefaturmaaluno = :codtarefaturmaaluno";
+					$stmt = $db->prepare($cmd);
+					$stmt->bindValue(':notafinal', $value, PDO::PARAM_INT);
+					$stmt->bindValue(':codtarefaturmaaluno', $cod[1], PDO::PARAM_INT);
+					$ok1 = $stmt->execute();
+					if (! $ok1) {
+						$ok = false;
+					}
+				}
+			}
+		} 
+
+		if ($ok) {
+			echo "<div class=\"alert alert-success\" role=\"alert\">Notas finais salvas com sucesso!</div>";
+		} else {
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro salvar notas finais!</div>";
+		}
+
+
+	}
+
+
 	
 	function formulario() {
 		$db = $this->db;
 		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);
 		$tbl->execute();
 		$rowTbl = $tbl->fetch();
 
@@ -164,13 +189,8 @@ class Form {
 				</div>
 			</div>
 		</form>
-		
 		<hr>
-		
-		
 		<?php
-		
-		
 	}
 	
 	
@@ -181,8 +201,8 @@ class Form {
 				"tt.codturma , " .
 				"tt.codtarefa , " .
 				"tt.codtarefaturma , " .
-				"to_char(datainicio, 'DD/MM/YY') as datainicio , " .
-				"to_char(datafim, 'DD/MM/YY') as datafim , " .
+				"to_char(datainicio, 'DD/MM/YYYY') as datainicio , " .
+				"to_char(datafim, 'DD/MM/YYYY') as datafim , " .
 				"tt.observacao , " .
 				"t.descricao AS turma " .
 				"FROM tarefaturma tt " .
@@ -214,18 +234,29 @@ class Form {
 			echo "<td>$row[observacao]</td>";
 			echo "</tr>";
 			?>
+
+			<form action="cadtarefaturma.php" method="post">
+			<tr>
+				<td></td>
+				<td colspan="4"><a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4></td>
+				<td>
+					<input type="hidden" name="codtarefa" value="<?php echo $_REQUEST['codtarefa']; ?>">
+					<input type="hidden" name="modo" value="salvarNotas">			
+					<button type="submit" class="btn btn-secondary">Salvar Notas</button>	
+				</td>
+			</tr>
 			<tr>
 				<td></td>
 				<td colspan="5">
-					<a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4>
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
 						$cmd = "SELECT " .
 								"tta.codtarefaturmaaluno , " .
 								"a.nome , " .
-								"to_char(dataentrega, 'DD/MM/YY') as dataentrega , " .
+								"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega , " .
 								"tta.entregas , " .
 								"tta.resultados , " .
+								"tta.notafinal, " .
 								"tta.nota " .
 								"FROM tarefaturmaaluno tta " .
 								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
@@ -234,6 +265,7 @@ class Form {
 						$tblAlunos = $db->prepare($cmd);
 						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
 						$tblAlunos->execute();
+						echo "";
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
 							"<th>Cod</th>" .
@@ -241,6 +273,7 @@ class Form {
 							"<th>Data</th>" .
 							"<th>Entregas</th>" .
 							"<th>Nota</th>" .
+							"<th>Nota Final</th>" .
 							"</tr>";
 
 						while ($rowAluno = $tblAlunos->fetch()) {
@@ -254,6 +287,7 @@ class Form {
 									"<td>$rowAluno[dataentrega]</td>" .
 									"<td>$rowAluno[entregas]</td>" .
 									"<td>$rowAluno[nota]</td>" .
+									"<td><input type=\"text\" id=\"nf-$rowAluno[codtarefaturmaaluno]\" name=\"nf-$rowAluno[codtarefaturmaaluno]\" value=\"$rowAluno[notafinal]\"  class=\"form-control\"></td>" .
 									"</tr>";
 							if (false && $rowAluno["resultados"]) {
 								echo "<tr><td colspan='5'><pre>";
@@ -267,6 +301,8 @@ class Form {
 						?>
 					</div>
 				</td>
+			</tr>
+			</form>
 			<?php
 			
 		}
@@ -281,6 +317,10 @@ class Form {
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
+		}
+
+		if ($this->modo == "salvarNotas") {
+			$this->salvarNotas();
 		}
 
 		if ($this->modo == "exclui") {
