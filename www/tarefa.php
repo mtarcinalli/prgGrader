@@ -171,7 +171,7 @@ function listaTarefas($db, $codaluno) {
 				"<td>$rowTarefas[dataentrega]</td>".
 				"<td>$rowTarefas[entregas]</td>".
 				"<td>$rowTarefas[nota]</td>" .
-				#"<td>$rowTarefas[notafinal]</td>" .
+				"<td>$rowTarefas[notafinal]</td>" .
 				"</tr>";
 	}
 	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>";
