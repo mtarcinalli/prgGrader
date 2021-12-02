@@ -8,8 +8,7 @@ class Formulario {
 	private $modo;
 	private $arquivo;
 	
-	
-	function __construct($arquivo) {
+	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
 		$this->db = $db;
@@ -78,7 +77,8 @@ class Formulario {
 				"FROM turma t " .
 				"LEFT JOIN curso c ON t.codcurso = c.codcurso " .
 				"ORDER BY sigla desc";
-		$tbl = $db->query($cmd);
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
@@ -91,7 +91,7 @@ class Formulario {
 				"<th>Observações</th>" .
 				"</tr>";
 
-		while ($row = $tbl->fetchArray()) {
+		while ($row = $tbl->fetch()) {
 			echo "<tr>";
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\">del</a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\">edt</a> </td>";
@@ -132,9 +132,9 @@ class Formulario {
 					<option>[Curso]</option>
 					<?php
 					$cmd = "SELECT codcurso, descricao FROM curso ORDER BY descricao";
-					$stmt = $db->prepare($cmd);
-					$tbl = $stmt->execute();
-					while ($row = $tbl->fetchArray()){
+					$tbl = $db->prepare($cmd);
+					$tbl->execute();
+					while ($row = $tbl->fetch()){
 						echo "<option value='$row[codcurso]' ";
 						if ($row['codcurso'] == $rowTbl['codcurso'])
 							echo " selected";
@@ -182,7 +182,7 @@ class Formulario {
 
 #error_reporting(E_ALL);
 
-$frm = new Formulario($arquivo);
+$frm = new Formulario($arquivo, $db);
 
 
 
