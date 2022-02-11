@@ -2,3 +2,5 @@ arquivos/
 .vscode/
 *.db
 *.sqbpro
+*.zip
+*.swp
