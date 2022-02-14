@@ -226,7 +226,7 @@ class Form {
 
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\">del</a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td>$row[codtarefaturma]</td>";
 			echo "<td>$row[turma]($row[codturma])</td>";
 			echo "<td>$row[datainicio]</td>";

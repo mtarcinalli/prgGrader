@@ -69,7 +69,7 @@ echo "<table class=\"table table-striped\">" .
 
 while ($row = $tbl->fetch()) {
 	echo "<tr>";
-	echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcurso]'\">del</a> </td>";
+	echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcurso]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 	echo "<td>$row[descricao]</td>" .
 		"<td>$row[sigla]</td>" .
 		"<td>$row[observacao]</td>";

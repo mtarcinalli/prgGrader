@@ -82,9 +82,9 @@ class Formulario {
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\">del</a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\">edt</a> </td>";
-			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\">alunos</a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\"><span class=\"glyphicon glyphicon-education\"></span></a> </td>";
 			echo "<td>$row[curso]</td>" . 
 				"<td>$row[descricao]</td>" .
 				"<td>$row[sigla]</td>" .

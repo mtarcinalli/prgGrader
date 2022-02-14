@@ -90,9 +90,9 @@ class Formulario {
 
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\">del</a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\">edt</a> </td>";
-			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\">atribuir</a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-send\"></a> </td>";
 			echo "<td>$row[descricao]</td>";
 			echo "<td>$row[sigla]</td>";
 			echo "<td>" . nl2br($row['instrucoes']) . "</td>";
