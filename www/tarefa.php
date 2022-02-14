@@ -181,11 +181,8 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	} else {
 		formTarefa($codtarefaturmaaluno, $codaluno);
 	}
-	
 	echo "<h3>Resultado último envio:</h3>";
 	echo "<pre>$rowTarefaTurmaAluno[resultados]</pre>";
-
-
 }	
 
 function listaTarefas($db, $codaluno) { 
@@ -197,7 +194,8 @@ function listaTarefas($db, $codaluno) {
 		"to_char(tta.dataentrega, 'DD/MM/YYYY') as dataentrega, " .
 		"tta.entregas, tta.nota , tta.notafinal, " .
 		"to_char(tt.datainicio, 'DD/MM/YYYY') as datainicio, " .
-		"to_char(tt.datafim, 'DD/MM/YYYY') as datafim " .
+		"to_char(tt.datafim, 'DD/MM/YYYY') as datafim, " .
+		"(tt.datafim >= CURRENT_DATE) as prazo  " .
 		"FROM " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
@@ -207,10 +205,8 @@ function listaTarefas($db, $codaluno) {
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
 		"where  tta.codaluno = $codaluno ".
 		"ORDER BY tt.codturma desc, t.sigla asc";
-	#echo "cmd: $cmd";
 	$tblTarefas = $db->prepare($cmd);
 	$tblTarefas->execute();
-
 	echo "<table class=\"table table-striped\">" .
 			"<tr>" .
 			"<th>CURSO</th>" .
@@ -220,10 +216,8 @@ function listaTarefas($db, $codaluno) {
 			"<th>ENTREGA</th>" .
 			"<th>TENTATIVAS</th>" .
 			"<th>NOTA*</th>" .
-			"<th>NOTA FINAL</th>" .
+			"<th>NOTA FINAL**</th>" .
 			"</tr>";
-
-
 	while ($rowTarefas = $tblTarefas->fetch()) {
 		echo "<tr>" .
 				"<td>$rowTarefas[cursosigla]</td>".
@@ -232,14 +226,14 @@ function listaTarefas($db, $codaluno) {
 				"<a href='tarefa.php?codtarefaturmaaluno=$rowTarefas[codtarefaturmaaluno]'>" .
 				"$rowTarefas[tarefasigla]</a></td>" .
 				"<td>$rowTarefas[datainicio]</td>".
-				"<td>$rowTarefas[datafim]</td>".
-				"<td>$rowTarefas[dataentrega]</td>".
+				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[datafim]</td>".
+				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[dataentrega]</td>".
 				"<td>$rowTarefas[entregas]</td>".
 				"<td>$rowTarefas[nota]</td>" .
 				"<td>$rowTarefas[notafinal]</td>" .
 				"</tr>";
 	}
-	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>";
+	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>**NOTA APÓS CORREÇÃO<br>";
 }
 
 function listaNotas($db, $codaluno) {
