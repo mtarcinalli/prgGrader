@@ -11,11 +11,11 @@ $modo = @$_REQUEST['modo'];
 function formTarefa($codtarefaturmaaluno, $codaluno) {
 	?>
 	<form action="tarefa.php" method="post" enctype="multipart/form-data" class="form-inline">
-				<input type="hidden" name="modo" value="upload">
-				<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
-				<label for="arquivo">Selecione o arquivo a ser enviado:</label>
-				<input type="file" name="arquivo" id="arquivo" accept="*.zip" class="form-control">
-				<button type="submit" class="btn btn-primary">Enviar arquivo</button>
+		<input type="hidden" name="modo" value="upload">
+		<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
+		<label for="arquivo">Selecione o arquivo a ser enviado:</label>
+		<input type="file" name="arquivo" id="arquivo" accept="*.zip" class="form-control">
+		<button type="submit" class="btn btn-primary">Enviar arquivo</button>
 	</form>
 	<?php
 }
@@ -131,7 +131,6 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"t.sigla AS tarefasigla, ".
 		"tu.descricao AS turma , " .
 		"c.descricao AS curso , " .
-
 		"to_char(datainicio, 'DD/MM/YYYY') as datainicio, " .
 		"to_char(datafim, 'DD/MM/YYYY') as datafim, " .
 		"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega2, " .
@@ -145,13 +144,11 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
 		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
-
 	$tblTarefaTurmaAluno = $db->prepare($cmd);
 	$tblTarefaTurmaAluno->execute();
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
 	if (! $rowTarefaTurmaAluno)
 		return;
-
 	?>
 	<div class="row">
 		<div class="col-md-6"><h2>Tarefa:</h2></div>
@@ -225,9 +222,9 @@ function listaTarefas($db, $codaluno) {
 				"<td>" .
 				"<a href='tarefa.php?codtarefaturmaaluno=$rowTarefas[codtarefaturmaaluno]'>" .
 				"$rowTarefas[tarefasigla]</a></td>" .
-				"<td>$rowTarefas[datainicio]</td>".
+				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[datainicio]</td>".
 				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[datafim]</td>".
-				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[dataentrega]</td>".
+				"<td>$rowTarefas[dataentrega]</td>".
 				"<td>$rowTarefas[entregas]</td>".
 				"<td>$rowTarefas[nota]</td>" .
 				"<td>$rowTarefas[notafinal]</td>" .
@@ -328,9 +325,6 @@ if ($modo == "upload") {
 	enviaTarefa($db, $codtarefaturmaaluno, $codaluno);
 }
 
-
-
-
 if ($codtarefaturmaaluno) {
 	detalheTarefa($db, $codtarefaturmaaluno, $codaluno);
 	
@@ -338,9 +332,7 @@ if ($codtarefaturmaaluno) {
 	listaTarefas($db, $codaluno);
 	listaNotas($db, $codaluno);	
 }
-
 ?>
-
 </div>
 </body>
 </html>
