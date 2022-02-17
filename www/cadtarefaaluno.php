@@ -24,7 +24,7 @@ class Form {
 		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);
 		$tbl->execute();
 		$rowTbl = $tbl->fetch();
 
@@ -65,8 +65,8 @@ class Form {
 				"WHERE tt.codtarefa = :codtarefa ";
 				#"ORDER BY nome asc";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$tbl->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);
+		$tbl->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], PDO::PARAM_INT);
 		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
@@ -106,8 +106,8 @@ class Form {
 								"and tta.codtarefaturmaaluno = :codtarefaturmaaluno " .
 								"ORDER BY nome ASC";
 						$tblAlunos = $db->prepare($cmd);
-						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
-						$tblAlunos->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], PDO::PARAM_INT);
+						$tblAlunos->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], PDO::PARAM_INT);
 						$tblAlunos->execute();
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .

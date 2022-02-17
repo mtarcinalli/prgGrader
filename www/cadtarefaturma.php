@@ -275,7 +275,7 @@ class Form {
 								"WHERE codtarefaturma =  :codtarefaturma " . 
 								"ORDER BY nome ASC";
 						$tblAlunos = $db->prepare($cmd);
-						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
+						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], PDO::PARAM_INT);
 						$tblAlunos->execute();
 						echo "";
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
