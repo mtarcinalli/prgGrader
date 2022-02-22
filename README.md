@@ -3,7 +3,9 @@
 Dependências:
 - apache2
 - php
-- php-sqlite
+- postgresql
+- php-pgsql
+- php-mbstring
 - build-essential
 - cxxtest
 
