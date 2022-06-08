@@ -24,7 +24,7 @@ class Form {
 		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);
 		$tbl->execute();
 		$rowTbl = $tbl->fetch();
 
@@ -65,8 +65,8 @@ class Form {
 				"WHERE tt.codtarefa = :codtarefa ";
 				#"ORDER BY nome asc";
 		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], SQLITE3_INTEGER);
-		$tbl->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);
+		$tbl->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], PDO::PARAM_INT);
 		$tbl->execute();
 
 		echo "<table class=\"table table-striped\">" .
@@ -106,8 +106,8 @@ class Form {
 								"and tta.codtarefaturmaaluno = :codtarefaturmaaluno " .
 								"ORDER BY nome ASC";
 						$tblAlunos = $db->prepare($cmd);
-						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], SQLITE3_INTEGER);
-						$tblAlunos->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], SQLITE3_INTEGER);
+						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], PDO::PARAM_INT);
+						$tblAlunos->bindValue(':codtarefaturmaaluno', $_REQUEST['cp'], PDO::PARAM_INT);
 						$tblAlunos->execute();
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
@@ -138,7 +138,7 @@ class Form {
 
 								foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowAluno["resultados"]) as $linha){
 									// do stuff with $line
-									if (strpos($linha, "  inflating:") !== FALSE && strpos($linha, ".exe") === FALSE) {
+									if ((strpos($linha, "  inflating:") !== FALSE && strpos($linha, ".exe") === FALSE) || ($linha == "solution.h ")) {
 										echo "\n<tr><td colspan='5'><pre>";
 										$arq = trim(substr($linha, 13));
 										echo "$arq:<br><br>";
@@ -157,6 +157,23 @@ class Form {
 											echo "not ok2:\n $output</pre></td></tr>\n";
 									}
 								} 
+								
+										echo "\n<tr><td colspan='5'><pre>";
+										$arq = "solution.h";
+										echo "$arq:<br><br>";
+										$output = file_get_contents("$diretorio/$arq");
+										$enc = mb_detect_encoding($output);
+
+										if ($output) {
+											echo "ok\n$enc\n";
+											$contents = htmlentities($output, ENT_QUOTES, $enc);
+										} else {
+											echo "erro: $diretorio/$arq\n\n$output";
+										}
+										if ($contents)
+											echo "ok2: \n$contents</pre></td></tr>\n";
+										else
+											echo "not ok2:\n $output</pre></td></tr>\n";
 
 
 							}
