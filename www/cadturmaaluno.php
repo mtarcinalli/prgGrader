@@ -1,79 +1,65 @@
 <?php require_once 'header.php';
 
-
-
-class Form {
-	
+class Form {	
 	private $db;
 	private $modo;
 	private $arquivo;
 	
-	
-	function __construct($arquivo) {
+	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = new SQLite3('../db/pgrader.db');
+		$this->db = $db;
 		if (! $this->db)
 			echo "não abriu bd";
 		$this->acao();
 	}
 	
-	
 	function salvar() {
 		$db = $this->db;
-
 		$cmd = "SELECT codaluno, email FROM aluno WHERE email = :email";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':email', $_REQUEST['email'], SQLITE3_TEXT);		
-		$tbl = $stmt->execute();
-		$row = $tbl->fetchArray(SQLITE3_ASSOC);
-				
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':email', $_REQUEST['email'], PDO::PARAM_STR);		
+		$tbl->execute();
+		$row = $tbl->fetch();
 		if (! $row['codaluno']) {
-			echo "inserir aluno";
+			# inserindo aluno
 			$cmd = "INSERT INTO aluno " .
-				"(nome, email, senha) " .
+				"(codtipousuario, nome, email, senha) " .
 				"VALUES " .
-				"(:nome, :email, :senha) ";
-			$stmt = $db->prepare($cmd);
-
-			$stmt->bindValue(':nome', $_REQUEST['nome'], SQLITE3_TEXT);
-			$stmt->bindValue(':email', $_REQUEST['email'], SQLITE3_TEXT);
-			$stmt->bindValue(':senha', md5($_REQUEST['senha']), SQLITE3_TEXT);
-			$ok = $stmt->execute();
-			
+				"(4, :nome, :email, :senha) ";
+			$tbl = $db->prepare($cmd);
+			$tbl->bindValue(':nome', $_REQUEST['nome'], PDO::PARAM_STR);
+			$tbl->bindValue(':email', $_REQUEST['email'], PDO::PARAM_STR);
+			$tbl->bindValue(':senha', md5($_REQUEST['senha']), PDO::PARAM_STR);
+			$ok = $tbl->execute();
+			# recuperando codaluno
 			$cmd = "SELECT codaluno, email FROM aluno WHERE email = :email";
-			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':email', $_REQUEST['email'], SQLITE3_TEXT);		
-			$tbl = $stmt->execute();
-			$row = $tbl->fetchArray(SQLITE3_ASSOC);
+			$tbl = $db->prepare($cmd);
+			$tbl->bindValue(':email', $_REQUEST['email'], PDO::PARAM_STR);		
+			$tbl->execute();
+			$row = $tbl->fetch();
 		}
-		
+		# inserindo aluno em turma
 		$cmd = "INSERT INTO turmaaluno " .
 			"(codturma, codaluno) " .
 			"VALUES " .
 			"(:codturma, :codaluno) ";
-		$stmt = $db->prepare($cmd);
-
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);
-		$stmt->bindValue(':codaluno', $row['codaluno'], SQLITE3_INTEGER);
-		$ok = @$stmt->execute();
-
-
-		#echo "dbc: " . $stmt->rowCount();
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);
+		$tbl->bindValue(':codaluno', $row['codaluno'], PDO::PARAM_INT);
+		$ok = @$tbl->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
-		}
-		
-		
+		}		
 	}
 	
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM turmaaluno where codturmaaluno = :codturmaaluno";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturmaaluno', $_REQUEST['cod'], SQLITE3_INTEGER);
+		$stmt->bindValue(':codturmaaluno', $_REQUEST['cod'], PDO::PARAM_INT);
 		$ok = $stmt->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
@@ -82,12 +68,9 @@ class Form {
 		}
 	}
 	
-	
 	function importarAlunos() {
-
 		$uploaddir = "../uploads/";
 		$uploadfile = $uploaddir . "alunos.csv";
-
 		if(is_file($uploadfile)) {
 				unlink($uploadfile);
 		}
@@ -124,15 +107,11 @@ class Form {
 	
 	function formulario() {
 		$db = $this->db;
-		
 		$cmd = "SELECT t.*, c.descricao AS curso FROM turma t INNER JOIN curso c ON c.codcurso = t.codcurso WHERE codturma = :codturma";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);		
-		$tbl = $stmt->execute();
-		$rowTbl = $tbl->fetchArray();
-
-		#print_r($rowTbl);
-		
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);		
+		$tbl->execute();
+		$rowTbl = $tbl->fetch();
 		echo "<table class='table'>" .
 				"<tr>" .
 				"<th>Curso:</th>" .
@@ -194,64 +173,44 @@ class Form {
 				"INNER JOIN aluno a ON ta.codaluno = a.codaluno " .
 				"WHERE codturma = :codturma " .
 				"ORDER BY nome asc";
-		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturma', $_REQUEST['codturma'], SQLITE3_INTEGER);		
-		$tbl = $stmt->execute();
-
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);		
+		$tbl->execute();
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
 				"<th></th>" .
 				"<th>Nome</th>" .
 				"<th>E-mail</th>" .
 				"</tr>";
-
-		while ($row = $tbl->fetchArray()) {
+		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturmaaluno]&amp;codturma=$_REQUEST[codturma]'\">del</a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturmaaluno]&amp;codturma=$_REQUEST[codturma]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td>$row[nome]</td>";
 			echo "<td>$row[email]</td>";
 			echo "</tr>";
 		}
 		echo "</table>";
-
 	}	
-		
-	
-	
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
 		}
-
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-
 		if ($this->modo == "upload") {
 			$this->importarAlunos();
 		}
-
-
-		$this->formulario();
-	
-	
+		$this->formulario();	
 		$this->listar();
 	}
 }
 
-
-
-
-
 #error_reporting(E_ALL);
-
-$frm = new Form($arquivo);
-
-
-
+$frm = new Form($arquivo, $db);
 
 ?>
-
 </div>
 </body>
 </html>

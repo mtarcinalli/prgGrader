@@ -11,12 +11,9 @@ class Formulario {
 	function __construct($arquivo, $db) {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
-		$this->db = $db; #new SQLite3('../db/pgrader.db');
-		#if (! $this->db
-		#	echo "não abriu bd";
+		$this->db = $db;
 		$this->acao();
 	}
-	
 	
 	function salvar() {
 		$db = $this->db;
@@ -28,7 +25,7 @@ class Formulario {
 					"observacao = :observacao " .
 					"WHERE codtarefa = :cp";
 			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':cp', $_REQUEST['cp'], SQLITE3_INTEGER);
+			$stmt->bindValue(':cp', $_REQUEST['cp'], PDO::PARAM_INT);
 			$acao = "alterar";
 			$_REQUEST['cod'] = "";
 		} else {
@@ -39,26 +36,23 @@ class Formulario {
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
-		$stmt->bindValue(':descricao', $_REQUEST['descricao'], SQLITE3_TEXT);
-		$stmt->bindValue(':sigla', $_REQUEST['sigla'], SQLITE3_TEXT);
-		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], SQLITE3_TEXT);
-		$stmt->bindValue(':observacao', $_REQUEST['observacao'], SQLITE3_TEXT);
+		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
+		$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
+		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
+		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
-		#echo "dbc: " . $stmt->rowCount();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
-		
-		
 	}
 	
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM tarefa where codtarefa = :codtarefa";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefa', $_REQUEST['cod'], SQLITE3_INTEGER);
+		$stmt->bindValue(':codtarefa', $_REQUEST['cod'], PDO::PARAM_INT);
 		$ok = $stmt->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
@@ -90,9 +84,9 @@ class Formulario {
 
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\">del</a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\">edt</a> </td>";
-			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\">atribuir</a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-send\"></a> </td>";
 			echo "<td>$row[descricao]</td>";
 			echo "<td>$row[sigla]</td>";
 			echo "<td>" . nl2br($row['instrucoes']) . "</td>";

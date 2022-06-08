@@ -1,9 +1,6 @@
 <?php require_once 'header.php';
 
-
-
-class Formulario {
-	
+class Formulario {	
 	private $db;
 	private $modo;
 	private $arquivo;
@@ -12,12 +9,10 @@ class Formulario {
 		$this->modo = $_REQUEST["modo"];
 		$this->arquivo = $arquivo;
 		$this->db = $db;
-			#new SQLite3('../db/pgrader.db');
 		if (! $this->db)
 			echo "não abriu bd";
 		$this->acao();
 	}
-	
 	
 	function salvar() {
 		$db = $this->db;
@@ -29,7 +24,7 @@ class Formulario {
 					"observacao = :observacao " .
 					"WHERE codturma = :cp";
 			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':cp', $_REQUEST['cp'], SQLITE3_INTEGER);
+			$stmt->bindValue(':cp', $_REQUEST['cp'], PDO::PARAM_INT);
 			$acao = "alterar";
 			$_REQUEST['cod'] = "";
 		} else {
@@ -40,26 +35,23 @@ class Formulario {
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
-		$stmt->bindValue(':codcurso', $_REQUEST['codcurso'], SQLITE3_INTEGER);
-		$stmt->bindValue(':descricao', $_REQUEST['descricao'], SQLITE3_TEXT);
-		$stmt->bindValue(':sigla', $_REQUEST['sigla'], SQLITE3_TEXT);
-		$stmt->bindValue(':observacao', $_REQUEST['observacao'], SQLITE3_TEXT);
+		$stmt->bindValue(':codcurso', $_REQUEST['codcurso'], PDO::PARAM_INT);
+		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
+		$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
+		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
-		#echo "dbc: " . $stmt->rowCount();
-		if ($ok && $db->changes()) {
+		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
-		
-		
 	}
 	
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM turma where codturma = :codturma";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codturma', $_REQUEST['cod'], SQLITE3_INTEGER);
+		$stmt->bindValue(':codturma', $_REQUEST['cod'], PDO::PARAM_INT);
 		$ok = $stmt->execute();
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
@@ -68,7 +60,6 @@ class Formulario {
 		}
 	}
 		
-	
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT " .
@@ -79,7 +70,6 @@ class Formulario {
 				"ORDER BY sigla desc";
 		$tbl = $db->prepare($cmd);
 		$tbl->execute();
-
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
 				"<th></th>" .
@@ -90,34 +80,28 @@ class Formulario {
 				"<th>Sigla</th>" .
 				"<th>Observações</th>" .
 				"</tr>";
-
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\">del</a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\">edt</a> </td>";
-			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\">alunos</a> </td>";
-
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\"><span class=\"glyphicon glyphicon-education\"></span></a> </td>";
 			echo "<td>$row[curso]</td>" . 
 				"<td>$row[descricao]</td>" .
 				"<td>$row[sigla]</td>" .
 				"<td>$row[observacao]</td>";
 			echo "</tr>";
 		}
-
 		echo "</table>";
-
 	}	
-	
 	
 	function formulario() {
 		$db = $this->db;
 		if ($this->modo =="alterar") {
 			$cmd = "SELECT * FROM turma WHERE codturma = :codturma";
-			$stmt = $db->prepare($cmd);
-			$stmt->bindValue(':codturma', $_REQUEST['cod'], SQLITE3_INTEGER);
-			
-			$tbl = $stmt->execute();
-			$rowTbl = $tbl->fetchArray();
+			$tbl = $db->prepare($cmd);
+			$tbl->bindValue(':codturma', $_REQUEST['cod'], PDO::PARAM_INT);
+			$tbl->execute();
+			$rowTbl = $tbl->fetch();
 		}
 		?>
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
@@ -126,7 +110,6 @@ class Formulario {
 				<input type="text" name="descricao" id="descricao" value="<?php echo $rowTbl["descricao"]; ?>" class="form-control">
 				<label for="sigla">Sigla:</label>
 				<input type="text" name="sigla" id="sigla" value="<?php echo $rowTbl["sigla"]; ?>" class="form-control">
-				
 				<label for="codcurso">Curso:</label>
 				<select name="codcurso" id="codcurso" class="form-control">
 					<option>[Curso]</option>
@@ -142,7 +125,6 @@ class Formulario {
 					}
 					?>
 				</select>
-				
 				<label for="observacao">Observações:</label>
 				<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo $rowTbl['observacao']; ?>">
 				<input type="hidden" name="cp" value="<?php echo $_REQUEST['cod']; ?>">
@@ -153,42 +135,24 @@ class Formulario {
 			</div>
 		</form>
 		<br>
-		<?php
-		
-		
+		<?php	
 	}
-	
-	
 	
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
 		}
-
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-
-
 		$this->formulario();	
-	
 		$this->listar();
 	}
 }
 
-
-
-
-
 #error_reporting(E_ALL);
-
 $frm = new Formulario($arquivo, $db);
-
-
-
-
 ?>
-
 </div>
 </body>
 </html>

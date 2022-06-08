@@ -1,2 +1,5 @@
-arquivos/
-.vscode
+.vscode/
+*.db
+*.sqbpro
+*.zip
+*.swp

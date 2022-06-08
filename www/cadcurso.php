@@ -17,13 +17,9 @@
 	<br>
 
 <?php
-#error_reporting(E_ALL);
 
-#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
-
-
 	
 if (@$_REQUEST['modo'] == "salvar") {
 	$cmd = "INSERT INTO curso " .
@@ -31,9 +27,9 @@ if (@$_REQUEST['modo'] == "salvar") {
 		"VALUES " .
 		"(:descricao, :sigla, :observacao) ";
 	$stmt = $db->prepare($cmd);
-	$stmt->bindValue(':descricao', $_REQUEST['descricao'], SQLITE3_TEXT);
-	$stmt->bindValue(':sigla', $_REQUEST['sigla'], SQLITE3_TEXT);
-	$stmt->bindValue(':observacao', $_REQUEST['observacao'], SQLITE3_TEXT);
+	$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
+	$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
+	$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 	$ok = $stmt->execute();
 	if ($ok) {
 		echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso!</div>";
@@ -45,7 +41,7 @@ if (@$_REQUEST['modo'] == "salvar") {
 if (@$_REQUEST['modo'] == "exclui") {
 	$cmd = "DELETE FROM curso where codcurso = :codcurso";
 	$stmt = $db->prepare($cmd);
-	$stmt->bindValue(':codcurso', $_REQUEST['cod'], SQLITE3_INTEGER);
+	$stmt->bindValue(':codcurso', $_REQUEST['cod'], PDO::PARAM_INT);
 	$ok = $stmt->execute();
 	if ($ok) {
 		echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
@@ -69,7 +65,7 @@ echo "<table class=\"table table-striped\">" .
 
 while ($row = $tbl->fetch()) {
 	echo "<tr>";
-	echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcurso]'\">del</a> </td>";
+	echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcurso]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 	echo "<td>$row[descricao]</td>" .
 		"<td>$row[sigla]</td>" .
 		"<td>$row[observacao]</td>";
