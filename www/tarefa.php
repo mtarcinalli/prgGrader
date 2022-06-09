@@ -314,6 +314,9 @@ function listaNotas($db, $codaluno) {
 				}
 			}
 			$notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 7 * 0.3));
+			if ($codturma == 9 || $codturma == 8) {
+				$notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 6 * 0.3));
+			}
 			echo "<td class=\"text-center\">$notaFinal</td>";
 			echo "</tr>";		
 		}

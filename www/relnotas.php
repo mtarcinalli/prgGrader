@@ -59,7 +59,7 @@ if ($_REQUEST["codturma"]) {
     }
 
     # alunos
-    $cmd = "SELECT a.codaluno, a.nome, a.email ".
+    $cmd = "SELECT a.codaluno, a.nome, a.email, codturma ".
                 "FROM aluno a ".
                 "INNER JOIN turmaaluno ta ON a.codaluno = ta.codaluno ".
                 "WHERE codturma = :codturma ORDER BY a.nome";
@@ -71,7 +71,7 @@ if ($_REQUEST["codturma"]) {
     }
 
     # notas
-    $cmd = "SELECT tta.codtarefaturma, codaluno, notafinal ".
+    $cmd = "SELECT tta.codtarefaturma, codaluno, notafinal, codturma ".
                 "FROM tarefaturmaaluno tta ".
                 "INNER JOIN tarefaturma tt ON tta.codtarefaturma = tt.codtarefaturma ".
                 "WHERE codturma = :codturma ".
@@ -96,7 +96,7 @@ if ($_REQUEST["codturma"]) {
 
     foreach ($alunos as $aluno) {
         echo "<tr>";
-        echo "<td>$aluno[nome] ($aluno[email])</td>";
+        echo "<td>$aluno[nome] ($aluno[email] - $aluno[codturma] )</td>";
         #echo "<td>$aluno[email]</td>";
         $notasAv = 0;
         $notasTrab = 0;
@@ -109,6 +109,9 @@ if ($_REQUEST["codturma"]) {
             }
         }
         $notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 7 * 0.3));
+        if ($aluno["codturma"] == 9 || $aluno["codturma"] == 8) {
+            $notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 6 * 0.3));
+        }
         echo "<td class=\"text-center\">$notaFinal</td>";
         echo "</tr>";
     
