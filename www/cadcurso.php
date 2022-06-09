@@ -3,9 +3,9 @@
 	<form action="cadcurso.php" method="post" role="form">
 		<div class="form-group">
 			<label for="descricao">Curso:</label>
-			<input type="text" name="descricao" id="descricao" class="form-control">
+			<input type="text" name="descricao" id="descricao" class="form-control" maxlength="200">
 			<label for="sigla">Sigla:</label>
-			<input type="text" name="sigla" id="sigla" class="form-control">
+			<input type="text" name="sigla" id="sigla" class="form-control" maxlength="10">
 			<label for="observacao">Observações:</label>
 			<input type="text" name="observacao" class="form-control">
 			<input type="hidden" name="modo" value="salvar">
