@@ -17,6 +17,7 @@ class Formulario {
 	
 	function salvar() {
 		$db = $this->db;
+		$cp = 0;
 		if ($_REQUEST['cp'] != "") {
 			$cmd = "UPDATE tarefa SET " .
 					"descricao = :descricao, " .
@@ -28,6 +29,7 @@ class Formulario {
 			$stmt->bindValue(':cp', $_REQUEST['cp'], PDO::PARAM_INT);
 			$acao = "alterar";
 			$_REQUEST['cod'] = "";
+			$cp = $_REQUEST['cp'];
 		} else {
 			$cmd = "INSERT INTO tarefa " .
 				"(descricao, sigla, instrucoes, observacao) " .
@@ -41,6 +43,31 @@ class Formulario {
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
+
+		if (! $cp && $ok) {
+			$cmd = "SELECT max(codtarefa) AS cp FROM tarefa";
+			$tbl = $db->prepare($cmd);
+			$tbl->execute();
+			$row = $tbl->fetch();
+			$cp = $row[cp];
+
+			$dir = "../uploads/TAREFAS/T$cp";
+			$cmd = "mkdir -p $dir";
+			$output = shell_exec($cmd);
+		}
+
+		if ($_FILES['arquivo']['tmp_name']) {
+			$uploadfile = "../uploads/TAREFAS/T$cp/solution.h";
+			if(is_file($uploadfile)) {
+					unlink($uploadfile);
+			}
+
+			if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
+				return;
+			}
+		}
+
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
@@ -107,7 +134,7 @@ class Formulario {
 			$rowTbl = $tbl->fetch();
 		}
 		?>
-		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
+		<form action="<?php echo $this->arquivo; ?>" method="post" enctype="multipart/form-data" role="form">
 			<div class="form-group">
 				<label for="descricao">Tarefa:</label>
 				<input type="text" name="descricao" id="descricao" value="<?php echo $rowTbl["descricao"]; ?>" class="form-control">
@@ -117,6 +144,9 @@ class Formulario {
 				<label for="instrucoes">Instruções:</label>
 				<textarea name="instrucoes" id="instrucoes" class="form-control"><?php echo $rowTbl["instrucoes"]; ?></textarea>
 				
+				<label for="arquivo">Selecione o arquivo a ser enviado:</label>
+				<input type="file" name="arquivo" id="arquivo" accept="*.h" class="form-control">
+
 				<label for="observacao">Observações:</label>
 				<textarea name="observacao" id="observacao" class="form-control"><?php echo $rowTbl["observacao"]; ?></textarea>
 
