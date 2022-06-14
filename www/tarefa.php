@@ -65,9 +65,9 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"ls && " .
 			"unzip -j arquivo.zip && " .
 			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution.h . && " .
-			"ls && " .
 			"cxxtestgen --error-printer --have-eh -o runner01.cpp solution.h 2>&1 && " .
 			"g++ -o runner01 runner01.cpp 2>&1 && " .
+			"echo '====' && " .
 			"timeout 8s ./runner01 2>&1";
 	#echo $cmd;
 	#$txt = exec($cmd, $output, $return_var);
@@ -129,6 +129,8 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "select " .
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
+		"tt.codturma , " .
+		"tu.codcurso , " .
 		"tu.descricao AS turma , " .
 		"c.descricao AS curso , " .
 		"to_char(datainicio, 'DD/MM/YYYY') as datainicio, " .
@@ -179,7 +181,37 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		formTarefa($codtarefaturmaaluno, $codaluno);
 	}
 	echo "<h3>Resultado último envio:</h3>";
-	echo "<pre>$rowTarefaTurmaAluno[resultados]</pre>";
+	$res = $rowTarefaTurmaAluno[resultados];
+	# ocultando saida cxxtest
+	$res = substr($res, 0, strpos($res, "===="));
+	echo "<pre>$res</pre>";
+	echo "<h3>Arquivos enviados:</h3>";
+
+	echo "Diretório: TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]\n";
+	$diretorio = "../uploads/CURSO$rowTarefaTurmaAluno[codcurso]/TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]";
+
+
+	foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaAluno["resultados"]) as $linha){
+		// do stuff with $line
+		if ((strpos($linha, "  inflating:") !== FALSE && strpos($linha, ".exe") === FALSE)) {
+			echo "\n<tr><td colspan='5'><pre>";
+			$arq = trim(substr($linha, 13));
+			echo "$arq:<br><br>";
+			$output = file_get_contents("$diretorio/$arq");
+			$enc = mb_detect_encoding($output);
+
+			if ($output) {
+				#echo "ok\n$enc\n";
+				$contents = htmlentities($output, ENT_QUOTES, $enc);
+			} else {
+				echo "erro: $diretorio/$arq\n\n$output";
+			}
+			if ($contents)
+				echo "\n$contents</pre></td></tr>\n";
+			else
+				echo "\n $output</pre></td></tr>\n";
+		}
+	}
 }	
 
 function listaTarefas($db, $codaluno) { 
@@ -333,7 +365,7 @@ if ($codtarefaturmaaluno) {
 	
 } else {
 	listaTarefas($db, $codaluno);
-	listaNotas($db, $codaluno);	
+	#listaNotas($db, $codaluno);
 }
 ?>
 </div>
