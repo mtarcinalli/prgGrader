@@ -99,6 +99,7 @@ class Form {
 				}
 				$_REQUEST['nome'] = $row[0];
 				$_REQUEST['email'] = $row[1];
+				$_REQUEST['senha'] = $row[2];
 				$this->salvar();
 			}
 		}
@@ -150,7 +151,7 @@ class Form {
 
 			<input type="hidden" name="codturma" value="<?php echo $_REQUEST['codturma']; ?>">
 			
-			<input type="password" name="senha" id="senha" class="form-control" pattern=".{5,}" placeholder="Senha">
+			<!--<input type="password" name="senha" id="senha" class="form-control" pattern=".{5,}" placeholder="Senha">-->
 			
 			<input type="hidden" name="modo" value="upload">
 
