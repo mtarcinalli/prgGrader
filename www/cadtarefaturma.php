@@ -6,7 +6,7 @@ class Form {
 	private $arquivo;
 	
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		$this->acao();
@@ -170,8 +170,9 @@ class Form {
 						$tbl->execute();
 						while ($row = $tbl->fetch()){
 							echo "<option value='$row[codturma]' ";
-							if ($row['codturma'] == $rowTbl['codturma'] || $row['codturma'] == $rowTurma['codturma'])
-								echo " selected";
+							if (isset($rowTurma))
+								if ($row['codturma'] == $rowTbl['codturma'] || $row['codturma'] == $rowTurma['codturma'])
+									echo " selected";
 							echo ">$row[sigla] - $row[descricao]</option>";
 						}
 						?>
@@ -179,17 +180,17 @@ class Form {
 				</div>
 				<label for="datainicio" class="col-sm-1 control-label">Início:</label>
 				<div class="col-sm-3">
-					<input type="date" name="datainicio" id="datainicio" class="form-control" placeholder="Data de início" value="<?php echo $rowTurma['datainicio']; ?>">
+					<input type="date" name="datainicio" id="datainicio" class="form-control" placeholder="Data de início" value="<?php echo (isset($rowTurma) ? $rowTurma['datainicio'] : ""); ?>">
 				</div>
 				<label for="datafim" class="col-sm-1 control-label">Término:</label>
 				<div class="col-sm-3">
-					<input type="date" name="datafim" id="datafim" class="form-control" placeholder="Data de término" value="<?php echo $rowTurma['datafim']; ?>">
+					<input type="date" name="datafim" id="datafim" class="form-control" placeholder="Data de término" value="<?php echo (isset($rowTurma) ? $rowTurma['datafim'] : ""); ?>">
 				</div>
 			</div>
 			<div class="form-group">			
 				<label for="observacao" class="col-sm-2 control-label">Observações:</label>
 				<div class="col-sm-9">
-					<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo $rowTurma['observacao']; ?>">
+					<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTurma) ? $rowTurma["observacao"] : ""); ?></textarea>
 				</div>
 				<div class="col-sm-1">
 					<input type="hidden" name="codtarefa" value="<?php echo $_REQUEST['codtarefa']; ?>">
