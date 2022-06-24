@@ -24,9 +24,9 @@ class Form {
 		if (! $row['codaluno']) {
 			# inserindo aluno
 			$cmd = "INSERT INTO aluno " .
-				"(codtipousuario, nome, email, senha) " .
+				"(codtipousuario, nome, email, senha, alterasenha) " .
 				"VALUES " .
-				"(4, :nome, :email, :senha) ";
+				"(4, :nome, :email, :senha, true) ";
 			$tbl = $db->prepare($cmd);
 			$tbl->bindValue(':nome', $_REQUEST['nome'], PDO::PARAM_STR);
 			$tbl->bindValue(':email', $_REQUEST['email'], PDO::PARAM_STR);
