@@ -1,10 +1,8 @@
 <?php 
 require_once 'header.php';
 
-#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
-
 
 $cmd = "select " .
 	"nome, email " .
@@ -16,14 +14,14 @@ $tblAluno->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
 $tblAluno->execute();
 $rowAluno = $tblAluno->fetch();
 
-if ($_REQUEST['senha'] && $_REQUEST['senha2']) {
+if (isset($_REQUEST['senha']) && isset($_REQUEST['senha2'])) {
 	if ($_REQUEST['senha'] != $_REQUEST['senha2']) {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Redigite a senha corretamente!</div>";
 	} elseif (strlen($_REQUEST['senha']) < 5) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Senha deve ter mais que 5 caracteres!</div>";
 	} else {
 		$cmd = "UPDATE aluno SET " .
-			"senha = :senha " .
+			"senha = :senha , alterasenha = false " .
 			"WHERE codaluno = :codaluno";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
@@ -34,13 +32,8 @@ if ($_REQUEST['senha'] && $_REQUEST['senha2']) {
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar senha!</div>";
 		}
-		
-
-		
 	}
 }
-
-
 ?>
 
 
