@@ -9,7 +9,7 @@ class Formulario {
 	
 	
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		$this->acao();
@@ -49,7 +49,7 @@ class Formulario {
 			$tbl = $db->prepare($cmd);
 			$tbl->execute();
 			$row = $tbl->fetch();
-			$cp = $row[cp];
+			$cp = $row["cp"];
 
 			$dir = "../uploads/TAREFAS/T$cp";
 			$cmd = "mkdir -p $dir";
@@ -137,20 +137,20 @@ class Formulario {
 		<form action="<?php echo $this->arquivo; ?>" method="post" enctype="multipart/form-data" role="form">
 			<div class="form-group">
 				<label for="descricao">Tarefa:</label>
-				<input type="text" name="descricao" id="descricao" value="<?php echo $rowTbl["descricao"]; ?>" class="form-control">
+				<input type="text" name="descricao" id="descricao" value="<?php echo (isset($rowTbl) ? $rowTbl["descricao"] : ""); ?>" class="form-control">
 				<label for="sigla">Sigla:</label>
-				<input type="text" name="sigla" id="sigla" value="<?php echo $rowTbl["sigla"]; ?>" class="form-control">
+				<input type="text" name="sigla" id="sigla" value="<?php echo (isset($rowTbl) ? $rowTbl["sigla"] : ""); ?>" class="form-control">
 				
 				<label for="instrucoes">Instruções:</label>
-				<textarea name="instrucoes" id="instrucoes" class="form-control"><?php echo $rowTbl["instrucoes"]; ?></textarea>
+				<textarea name="instrucoes" id="instrucoes" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["instrucoes"]: ""); ?></textarea>
 				
 				<label for="arquivo">Selecione o arquivo a ser enviado:</label>
 				<input type="file" name="arquivo" id="arquivo" accept="*.h" class="form-control">
 
 				<label for="observacao">Observações:</label>
-				<textarea name="observacao" id="observacao" class="form-control"><?php echo $rowTbl["observacao"]; ?></textarea>
+				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
 
-				<input type="hidden" name="cp" value="<?php echo $_REQUEST['cod']; ?>">
+				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">
@@ -159,8 +159,6 @@ class Formulario {
 		</form>
 		<br>
 		<?php
-		
-		
 	}
 	
 	
