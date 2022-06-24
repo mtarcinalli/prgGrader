@@ -6,7 +6,7 @@ class Formulario {
 	private $arquivo;
 	
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		if (! $this->db)
@@ -107,9 +107,9 @@ class Formulario {
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
 			<div class="form-group">
 				<label for="descricao">Turma:</label>
-				<input type="text" name="descricao" id="descricao" value="<?php echo $rowTbl["descricao"]; ?>" class="form-control">
+				<input type="text" name="descricao" id="descricao" value="<?php echo (isset($rowTbl) ? $rowTbl["descricao"] : ""); ?>" class="form-control">
 				<label for="sigla">Sigla:</label>
-				<input type="text" name="sigla" id="sigla" value="<?php echo $rowTbl["sigla"]; ?>" class="form-control">
+				<input type="text" name="sigla" id="sigla" value="<?php echo (isset($rowTbl) ? $rowTbl["sigla"] : ""); ?>" class="form-control">
 				<label for="codcurso">Curso:</label>
 				<select name="codcurso" id="codcurso" class="form-control">
 					<option>[Curso]</option>
@@ -119,15 +119,16 @@ class Formulario {
 					$tbl->execute();
 					while ($row = $tbl->fetch()){
 						echo "<option value='$row[codcurso]' ";
-						if ($row['codcurso'] == $rowTbl['codcurso'])
-							echo " selected";
+						if (isset($rowTbl))
+							if ($row['codcurso'] == $rowTbl['codcurso'])
+								echo " selected";
 						echo ">$row[descricao]</option>";
 					}
 					?>
 				</select>
 				<label for="observacao">Observações:</label>
-				<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo $rowTbl['observacao']; ?>">
-				<input type="hidden" name="cp" value="<?php echo $_REQUEST['cod']; ?>">
+				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
+				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">

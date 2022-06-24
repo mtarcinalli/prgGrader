@@ -181,7 +181,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		formTarefa($codtarefaturmaaluno, $codaluno);
 	}
 	echo "<h3>Resultado último envio:</h3>";
-	$res = $rowTarefaTurmaAluno[resultados];
+	$res = $rowTarefaTurmaAluno["resultados"];
 	# ocultando saida cxxtest
 	$res = substr($res, 0, strpos($res, "===="));
 	echo "<pre>$res</pre>";
