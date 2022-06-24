@@ -1,0 +1,25 @@
+version: "1"
+services:
+
+    database:
+      image: postgres:12
+      container_name: db
+      restart: always
+      volumes:
+        - ./db/data:/var/lib/postgresql/data
+      environment:
+        POSTGRES_PASSWORD: devsecret
+        POSTGRES_USER: devuser
+        POSTGRES_DB: devdb
+        #ports:
+        #  - "54320:5432"
+    webserver:
+        container_name: php-apache
+        image: php:8.0-apache
+        volumes:
+          - ./www:/var/www/html/
+        ports:
+          - 8000:80
+
+volumes:
+    data:
