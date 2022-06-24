@@ -1,21 +1,26 @@
-version: "1"
+version: "3"
 services:
-
     database:
-      image: postgres:12
       container_name: db
+      build:
+          context: ./postgres
+          dockerfile: Dockerfile        
       restart: always
       volumes:
         - ./db/data:/var/lib/postgresql/data
       environment:
-        POSTGRES_PASSWORD: devsecret
-        POSTGRES_USER: devuser
-        POSTGRES_DB: devdb
-        #ports:
+        POSTGRES_PASSWORD: sn2144a
+        POSTGRES_USER: pgrader
+        POSTGRES_DB: pgrader
+        #ports:aaa
         #  - "54320:5432"
     webserver:
         container_name: php-apache
-        image: php:8.0-apache
+        build:
+            context: ./php
+            dockerfile: Dockerfile        
+        depends_on:
+          - database
         volumes:
           - ./www:/var/www/html/
         ports:
