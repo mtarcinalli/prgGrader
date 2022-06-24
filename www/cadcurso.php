@@ -7,7 +7,7 @@
 			<label for="sigla">Sigla:</label>
 			<input type="text" name="sigla" id="sigla" class="form-control" maxlength="10">
 			<label for="observacao">Observações:</label>
-			<input type="text" name="observacao" class="form-control">
+			<textarea name="observacao" id="observacao" class="form-control"></textarea>
 			<input type="hidden" name="modo" value="salvar">
 		</div>
 		<div class="form-group">
