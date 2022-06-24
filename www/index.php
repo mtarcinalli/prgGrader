@@ -1,5 +1,4 @@
-<?php require_once 'header.php';
-
+<?php 
 session_start();
 $_SESSION['codaluno'] = 0; 
 $_SESSION['codtipousuario'] = 0; 
@@ -8,29 +7,29 @@ $_SESSION['nome'] = 0;
 $codtipousuario = 0;
 $codaluno = 0;
 
-#die;
 
 if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
+	require_once 'conectdb.php';
 
-	#$db = new SQLite3('../db/pgrader.db');
 	if (! $db)
 		echo "não abriu bd";
 	
-	$cmd = "SELECT codaluno, codtipousuario, nome " .
+	$cmd = "SELECT codaluno, codtipousuario, nome, alterasenha " .
 			"FROM aluno " .
 			"WHERE email = :email " .
 			"AND senha = :senha";
 	
 	$tblLogin = $db->prepare($cmd);
+	$senha = md5($_REQUEST['senha']);
 	$tblLogin->bindParam(':email', $_REQUEST['usuario']);
-	$tblLogin->bindParam(':senha', md5($_REQUEST['senha']));
+	$tblLogin->bindParam(':senha', $senha);
 	$tblLogin->execute();
 	
 	if ($row = $tblLogin->fetch()) {
 		$_SESSION['codaluno'] = $row['codaluno'];
 		$_SESSION['codtipousuario'] = $row['codtipousuario'];
 		$_SESSION['nome'] = $row['nome'];
-		if (md5($_REQUEST['senha']) == 'b9196f70ad74e02f8faaf4a21755d377')
+		if ($row["alterasenha"])
 			header('Location: altsenha.php');
 		else
 			header('Location: tarefa.php');
@@ -48,7 +47,50 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 
 
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>prgGrader</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link type="text/css" rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	<style>
+		.option-button {
+		    height:100%;
+		}
+		
+		.media-object {
+		    height: 100px;
+		}
 
+		#lista img {
+			max-width: 100%;
+		}
+		
+		@media print {
+			.noPrint {
+				display:none;
+			}
+		}
+		
+	</style>
+</head>
+<body>
+<nav class="navbar navbar-default">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>                        
+		</button>
+   		<a class="navbar-brand" href="#">prgGrader</a>
+  	</div>
+</nav>
+
+<div class="container">
 
 <form method="post">
   <div class="form-group">
