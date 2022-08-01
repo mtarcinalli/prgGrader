@@ -21,7 +21,7 @@ class Form {
 		$tbl->bindValue(':email', $_REQUEST['email'], PDO::PARAM_STR);		
 		$tbl->execute();
 		$row = $tbl->fetch();
-		if (! $row['codaluno']) {
+		if (! $row) {
 			# inserindo aluno
 			$cmd = "INSERT INTO aluno " .
 				"(codtipousuario, nome, email, senha, alterasenha) " .
@@ -40,14 +40,22 @@ class Form {
 			$row = $tbl->fetch();
 		}
 		# inserindo aluno em turma
-		$cmd = "INSERT INTO turmaaluno " .
-			"(codturma, codaluno) " .
-			"VALUES " .
-			"(:codturma, :codaluno) ";
-		$tbl = $db->prepare($cmd);
-		$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);
-		$tbl->bindValue(':codaluno', $row['codaluno'], PDO::PARAM_INT);
-		$ok = @$tbl->execute();
+		try {
+			$cmd = "INSERT INTO turmaaluno " .
+				"(codturma, codaluno) " .
+				"VALUES " .
+				"(:codturma, :codaluno) ";
+			$tbl = $db->prepare($cmd);
+			$tbl->bindValue(':codturma', $_REQUEST['codturma'], PDO::PARAM_INT);
+			$tbl->bindValue(':codaluno', $row['codaluno'], PDO::PARAM_INT);
+			$ok = @$tbl->execute();
+		} catch (Exception $e) {
+			$ok = false;
+			if ($e->getCode() == 23505) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Aluno já existente na turma!</div>";
+				return;
+			}
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso!</div>";
 		} else {
@@ -79,18 +87,10 @@ class Form {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
 			return;
 		}	
-		
-		#$cmd = "ls -la ../uploads";
-		#$output = shell_exec($cmd);
-		#echo "<pre>$output</pre>";
-
-
 		$delimitador = ',';
 		$cerca = '"';
-
 		$f = fopen($uploadfile, 'r');
 		if ($f) { 
-			$cabecalho = fgetcsv($f, 0, $delimitador, $cerca);
 			while (!feof($f)) { 
 				$row = fgetcsv($f, 0, $delimitador, $cerca);
 				echo "<pre>$row[0]\t$row[1]</pre>";
@@ -128,16 +128,11 @@ class Form {
 		<hr>
 		<form action="cadturmaaluno.php" method="post" role="form" class="form-inline">
 			<div class="form-group">
-			<!--<label for="nome">Nome:</label>-->
 			<input type="text" name="nome" id="nome" class="form-control" placeholder="Nome">
-			<!--<label for="nome">E-mail:</label>-->
 			<input type="email" name="email" id="email" class="form-control" placeholder="E-mail">
-			<!--<label for="senha">Senha:</label>-->
 			<input type="password" name="senha" id="senha" class="form-control" pattern=".{5,}" placeholder="Senha">
-
 			<input type="hidden" name="codturma" value="<?php echo $_REQUEST['codturma']; ?>">
 			<input type="hidden" name="modo" value="salvar">
-		
 			<button type="submit" class="btn btn-primary">Salvar</button>
 			</div>
 		</form>
@@ -145,23 +140,15 @@ class Form {
 		<hr>
 		
 		<form action="cadturmaaluno.php" method="post" enctype="multipart/form-data" class="form-inline">
-
 			<label for="arquivo">Selecione o arquivo a ser enviado:
 			<input type="file" name="arquivo" id="arquivo" accept="*.csv" class="form-control">
-
 			<input type="hidden" name="codturma" value="<?php echo $_REQUEST['codturma']; ?>">
-			
-			<!--<input type="password" name="senha" id="senha" class="form-control" pattern=".{5,}" placeholder="Senha">-->
-			
 			<input type="hidden" name="modo" value="upload">
-
 			<button type="submit" class="btn btn-primary">Importar</button>
 		</form>
+		<p>Arquivo no formato csv sem cabeçalho e com 3 colunas: nome, e-mail e senha.</p>
 		<hr>
-		
 		<?php
-		
-		
 	}
 	
 	
