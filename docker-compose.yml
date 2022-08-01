@@ -4,7 +4,7 @@ services:
       container_name: db
       build:
           context: ./postgres
-          dockerfile: Dockerfile        
+          dockerfile: Dockerfile
       restart: always
       volumes:
         - ./db/data:/var/lib/postgresql/data
@@ -12,13 +12,13 @@ services:
         POSTGRES_PASSWORD: sn2144a
         POSTGRES_USER: pgrader
         POSTGRES_DB: pgrader
-        #ports:aaa
+        #ports:
         #  - "54320:5432"
     webserver:
         container_name: php-apache
         build:
             context: ./php
-            dockerfile: Dockerfile        
+            dockerfile: Dockerfile
         depends_on:
           - database
         volumes:
