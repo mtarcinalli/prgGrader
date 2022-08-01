@@ -6,7 +6,7 @@ class Formulario {
 	private $arquivo;
 	
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST['modo']) ? $_REQUEST['modo'] : false);
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		if (! $this->db)
@@ -57,7 +57,15 @@ class Formulario {
 		$cmd = "DELETE FROM aluno where codaluno = :codaluno";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codaluno', $_REQUEST['cod'], PDO::PARAM_INT);
-		$ok = $stmt->execute();
+		try {
+			$ok = $stmt->execute();
+		} catch (Exception $e) {
+			$ok = false;
+			if ($e->getCode() == 23503) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Aluno ainda possui registros relacionados!</div>";
+				return;
+			}
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
 		} else {
@@ -110,9 +118,9 @@ class Formulario {
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
 			<div class="form-group">
 				<label for="nome">Nome:</label>
-				<input type="text" name="nome" id="nome" value="<?php echo $rowTbl["nome"]; ?>" class="form-control">
+				<input type="text" name="nome" id="nome" value="<?php echo (isset($rowTbl) ? $rowTbl["nome"] : ""); ?>" class="form-control">
 				<label for="email">E-mail:</label>
-				<input type="text" name="email" id="email" value="<?php echo $rowTbl["email"]; ?>" class="form-control">
+				<input type="text" name="email" id="email" value="<?php echo (isset($rowTbl) ? $rowTbl["email"] : ""); ?>" class="form-control">
 				<label for="codcurso">Curso:</label>
 				<select name="codtipousuario" id="codtipousuario" class="form-control">
 					<option>[Tipo Usuário]</option>
@@ -122,8 +130,9 @@ class Formulario {
 					$tbl->execute();
 					while ($row = $tbl->fetch()){
 						echo "<option value='$row[codtipousuario]' ";
-						if ($row['codtipousuario'] == $rowTbl['codtipousuario'])
-							echo " selected";
+						if (isset($rowTbl))
+							if ($row['codtipousuario'] == $rowTbl['codtipousuario'])
+								echo " selected";
 						echo ">$row[descricao]</option>";
 					}
 					?>
@@ -131,8 +140,8 @@ class Formulario {
 				<label for="senha">Senha:</label>
 				<input type="password" name="senha" id="senha" class="form-control">
 				<label for="observacao">Observações:</label>
-				<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo $rowTbl['observacao']; ?>">
-				<input type="hidden" name="cp" value="<?php echo $_REQUEST['cod']; ?>">
+				<input type="text" name="observacao" id="observacao" class="form-control" value="<?php echo (isset($rowTbl) ? $rowTbl['observacao'] : ""); ?>">
+				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">
