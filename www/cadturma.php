@@ -52,7 +52,15 @@ class Formulario {
 		$cmd = "DELETE FROM turma where codturma = :codturma";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codturma', $_REQUEST['cod'], PDO::PARAM_INT);
-		$ok = $stmt->execute();
+		try {
+			$ok = $stmt->execute();
+		} catch (Exception $e) {
+			$ok = false;
+			if ($e->getCode() == 23503) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Turma ainda possui registros relacionados!</div>";
+				return;
+			}
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
 		} else {
