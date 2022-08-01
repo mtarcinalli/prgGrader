@@ -4,9 +4,9 @@ require_once 'conectdb.php';
 $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
 
 session_start();
-$codaluno = $_SESSION['codaluno'];
-$codtipousuario = $_SESSION['codtipousuario'];
-$nome = $_SESSION['nome'];
+$codaluno = (isset($_SESSION['codaluno']) ? $_SESSION['codaluno'] : false);
+$codtipousuario = (isset($_SESSION['codtipousuario']) ? $_SESSION['codtipousuario'] : false);
+$nome = (isset($_SESSION['nome']) ? $_SESSION['nome'] : false);
 
 if ($arquivo != "index.php" and ! $codaluno) {
 	header('Location: index.php');
