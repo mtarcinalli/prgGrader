@@ -80,14 +80,21 @@ class Formulario {
 		$cmd = "DELETE FROM tarefa where codtarefa = :codtarefa";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codtarefa', $_REQUEST['cod'], PDO::PARAM_INT);
-		$ok = $stmt->execute();
+		try {
+			$ok = $stmt->execute();
+		} catch (Exception $e) {
+			$ok = false;
+			if ($e->getCode() == 23503) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Tarefa ainda possui registros relacionados!</div>";
+				return;
+			}
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
 		}
 	}
-		
 	
 	function listar() {
 		$db = $this->db;
