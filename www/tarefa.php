@@ -183,7 +183,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	echo "<h3>Resultado último envio:</h3>";
 	$res = $rowTarefaTurmaAluno["resultados"];
 	# ocultando saida cxxtest
-	$res = substr($res, 0, strpos($res, "===="));
+	#$res = substr($res, 0, strpos($res, "===="));
 	echo "<pre>$res</pre>";
 	echo "<h3>Arquivos enviados:</h3>";
 
@@ -202,7 +202,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 
 			if ($output) {
 				#echo "ok\n$enc\n";
-				$contents = htmlentities($output, ENT_QUOTES, $enc);
+				$contents = @htmlentities($output, ENT_QUOTES, $enc);
 			} else {
 				echo "erro: $diretorio/$arq\n\n$output";
 			}
