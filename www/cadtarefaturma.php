@@ -80,9 +80,9 @@ class Form {
 			}
 		}
 		if ($ok) {
-			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
+			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso!</div>";
 		} else {
-			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!</div>";
 		}
 	}
 	

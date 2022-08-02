@@ -1,25 +1,20 @@
-<?php require_once 'header.php';
-
-
+<?php
+require_once 'header.php';
 
 class Form {
-	
 	private $db;
 	private $modo;
 	private $arquivo;
-	
-	
+
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		$this->acao();
 	}
 	
-	
 	function formulario() {
 		$db = $this->db;
-		
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
 		$tbl = $db->prepare($cmd);
 		$tbl->bindValue(':codtarefa', $_REQUEST['codtarefa'], PDO::PARAM_INT);

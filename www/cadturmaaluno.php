@@ -6,7 +6,7 @@ class Form {
 	private $arquivo;
 	
 	function __construct($arquivo, $db) {
-		$this->modo = $_REQUEST["modo"];
+		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		if (! $this->db)
