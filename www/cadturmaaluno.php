@@ -140,13 +140,14 @@ class Form {
 		<hr>
 		
 		<form action="cadturmaaluno.php" method="post" enctype="multipart/form-data" class="form-inline">
-			<label for="arquivo">Selecione o arquivo a ser enviado:
-			<input type="file" name="arquivo" id="arquivo" accept="*.csv" class="form-control">
+			<label for="arquivo">Arquivo alunos*:
+			<input type="file" name="arquivo" id="arquivo" accept=".csv" class="form-control">
+			</label>
 			<input type="hidden" name="codturma" value="<?php echo $_REQUEST['codturma']; ?>">
 			<input type="hidden" name="modo" value="upload">
 			<button type="submit" class="btn btn-primary">Importar</button>
 		</form>
-		<p>Arquivo no formato csv sem cabeçalho e com 3 colunas: nome, e-mail e senha.</p>
+		<p>* Arquivo no formato csv sem cabeçalho e com 3 colunas separadas por , : nome, e-mail e senha.</p>
 		<hr>
 		<?php
 	}
