@@ -62,6 +62,7 @@ if ($arquivo != "index.php" and ! $codaluno) {
 				<li><a href="cadcurso.php">Cursos</a></li>
 				<li><a href="cadturma.php">Turmas</a></li>
 				<li><a href="cadaluno.php">Usuários</a></li>
+				<li><a href="cadplugin.php">Corretores</a></li>
 				<li><a href="cadtarefa.php">Tarefas</a></li>
 				<li><a href="relnotas.php">Notas</a></li>
 			<?php } ?>      		

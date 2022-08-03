@@ -21,6 +21,12 @@ CREATE TABLE curso (
         observacao    TEXT
 );
 
+CREATE TABLE plugin (
+        codplugin      SERIAL PRIMARY KEY,
+        descricao     VARCHAR(200),
+        observacao    TEXT
+);
+
 CREATE TABLE tarefa (
         codtarefa     SERIAL PRIMARY KEY,
         descricao     VARCHAR(200),
