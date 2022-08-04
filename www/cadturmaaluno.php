@@ -82,11 +82,10 @@ class Form {
 		if(is_file($uploadfile)) {
 				unlink($uploadfile);
 		}
-		
 		if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
 			return;
-		}	
+		}
 		$delimitador = ',';
 		$cerca = '"';
 		$f = fopen($uploadfile, 'r');
