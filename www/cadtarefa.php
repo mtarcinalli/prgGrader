@@ -20,6 +20,7 @@ class Formulario {
 		$cp = 0;
 		if ($_REQUEST['cp'] != "") {
 			$cmd = "UPDATE tarefa SET " .
+					"codplugin = :codplugin, " .
 					"descricao = :descricao, " .
 					"sigla = :sigla, " .
 					"instrucoes = :instrucoes, " .
@@ -32,12 +33,13 @@ class Formulario {
 			$cp = $_REQUEST['cp'];
 		} else {
 			$cmd = "INSERT INTO tarefa " .
-				"(descricao, sigla, instrucoes, observacao) " .
+				"(codplugin, descricao, sigla, instrucoes, observacao) " .
 				"VALUES " .
-				"(:descricao, :sigla, :instrucoes, :observacao) ";
+				"(:codplugin, :descricao, :sigla, :instrucoes, :observacao) ";
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
+		$stmt->bindValue(':codplugin', $_REQUEST['codplugin'], PDO::PARAM_INT);
 		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
 		$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
@@ -129,8 +131,7 @@ class Formulario {
 		}
 		echo "</table>";
 	}	
-	
-	
+
 	function formulario() {
 		$db = $this->db;
 		if ($this->modo =="alterar") {
@@ -147,16 +148,30 @@ class Formulario {
 				<input type="text" name="descricao" id="descricao" value="<?php echo (isset($rowTbl) ? $rowTbl["descricao"] : ""); ?>" class="form-control">
 				<label for="sigla">Sigla:</label>
 				<input type="text" name="sigla" id="sigla" value="<?php echo (isset($rowTbl) ? $rowTbl["sigla"] : ""); ?>" class="form-control">
-				
 				<label for="instrucoes">Instruções:</label>
 				<textarea name="instrucoes" id="instrucoes" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["instrucoes"]: ""); ?></textarea>
-				
-				<label for="arquivo">Selecione o arquivo a ser enviado:</label>
-				<input type="file" name="arquivo" id="arquivo" accept="*.h" class="form-control">
-
+				<label for="codplugin">Corretor:</label>
+				<select name="codplugin" id="codplugin" class="form-control">
+					<option>[Corretor]</option>
+					<?php
+					$cmd = "SELECT codplugin, descricao FROM plugin ORDER BY descricao";
+					$tbl = $db->prepare($cmd);
+					$tbl->execute();
+					while ($row = $tbl->fetch()){
+						echo "<option value='$row[codplugin]' ";
+						if (isset($rowTbl))
+							if ($row['codplugin'] == $rowTbl['codplugin'])
+								echo " selected";
+						echo ">$row[descricao]</option>";
+					}
+					?>
+				</select>
+				<label for="arquivo">Arquivo solução:</label>
+				<input type="file" name="arquivo" id="arquivo" accept=".h" class="form-control">
+				<label for="arquivo">Arquivo modelo aluno:</label>
+				<input type="file" name="arquivoaluno" id="arquivoaluno" accept=".h" class="form-control">
 				<label for="observacao">Observações:</label>
 				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
-
 				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
 				<input type="hidden" name="modo" value="salvar">
 			</div>
@@ -167,8 +182,6 @@ class Formulario {
 		<br>
 		<?php
 	}
-	
-	
 	
 	function acao() {
 		if ($this->modo == "salvar") {

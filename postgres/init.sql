@@ -29,10 +29,12 @@ CREATE TABLE plugin (
 
 CREATE TABLE tarefa (
         codtarefa     SERIAL PRIMARY KEY,
+        codplugin     INT NOT NULL,
         descricao     VARCHAR(200),
         sigla VARCHAR(10),
         instrucoes    TEXT,
-        observacao    TEXT
+        observacao    TEXT,
+		FOREIGN KEY (codplugin) REFERENCES plugin (codplugin)
 );
 
 CREATE TABLE turma (
