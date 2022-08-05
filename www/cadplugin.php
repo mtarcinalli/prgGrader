@@ -19,6 +19,7 @@ class Formulario {
 		if ($_REQUEST['cp'] != "") {
 			$cmd = "UPDATE plugin SET " .
 					"descricao = :descricao, " .
+					"retorno = :retorno, " .
 					"observacao = :observacao " .
 					"WHERE codplugin = :cp";
 			$stmt = $db->prepare($cmd);
@@ -28,13 +29,15 @@ class Formulario {
 			$_REQUEST['cod'] = "";
 		} else {
 			$cmd = "INSERT INTO plugin " .
-				"(descricao, observacao) " .
+				"(descricao, retorno, observacao) " .
 				"VALUES " .
-				"(:descricao, :observacao) ";
+				"(:descricao, :retorno, :observacao) ";
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
+		$retorno = isset($_REQUEST['retorno']);
 		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
+		$stmt->bindValue(':retorno', $retorno, PDO::PARAM_BOOL);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		# creating directory		
@@ -125,20 +128,31 @@ class Formulario {
 	
 	function formulario() {
 		$db = $this->db;
+		$retorno = 0;
 		if ($this->modo =="alterar") {
 			$cmd = "SELECT * FROM plugin WHERE codplugin = :codplugin";
 			$tbl = $db->prepare($cmd);
 			$tbl->bindValue(':codplugin', $_REQUEST['cod'], PDO::PARAM_INT);
 			$tbl->execute();
 			$rowTbl = $tbl->fetch();
+			$retorno = $rowTbl['retorno'];
 		}
 		?>
+		
 		<form action="<?php echo $this->arquivo; ?>" method="post" enctype="multipart/form-data" class="form">
 			<div class="form-group">
 				<label for="descricao">Corretor:</label>
 				<input type="text" name="descricao" id="descricao" value="<?php echo (isset($rowTbl) ? $rowTbl["descricao"] : ""); ?>" class="form-control">
+			</div>
+			<div class="form-group">
 				<label for="arquivo">Arquivo corretor:</label>
 				<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
+			</div>
+			<div class="form-group">
+				<label for="retorno">Saída da execução:</label>
+				<input type="checkbox" id="retorno" name="retorno" value="1" <?php echo ($retorno ? "checked" : ""); ?>>
+			</div>
+			<div class="form-group">
 				<label for="observacao">Observações:</label>
 				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
 				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
@@ -148,8 +162,7 @@ class Formulario {
 				<button type="submit" class="btn btn-primary">Salvar</button>
 			</div>
 		</form>
-		<br>
-		<?php	
+		<?php
 	}
 	
 	function acao() {

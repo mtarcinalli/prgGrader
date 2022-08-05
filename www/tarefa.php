@@ -1,7 +1,6 @@
 <?php
 require_once 'header.php';
 
-#$db = new SQLite3('../db/pgrader.db');
 if (! $db)
 	echo "não abriu bd";
 
@@ -28,7 +27,6 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"t.codplugin, " .
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
-		#"tta.* " .
 		"FROM " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
@@ -37,59 +35,31 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
 		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
-	#echo "cmd: $cmd";
-
 	$tblTarefaTurmaAluno = $db->prepare($cmd);
 	$tblTarefaTurmaAluno->execute();
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
-
-	
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
 	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
 	$codplugin = $rowTarefaTurmaAluno['codplugin'];
-
 	$files = glob($uploaddir . "*");
 	foreach($files as $file){
 		if(is_file($file)) {
 			unlink($file);
 		}
 	}
-	
 	if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
 		return;
 	}
-
 	$cmd = "cd $uploaddir && ls && echo '---' && " .
-			#"rm !(arquivo.zip) -f && " .
 			"ls && " .
 			"unzip -j arquivo.zip && " .
 			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution/* . && " .
 			"cp ../../../../CORRETORES/PLUGIN" . $codplugin .  "/corretor/* . && " .
 			"bash ./grader.sh";
 	$output = trim(shell_exec($cmd));
-
-	#$output = substr($output, 0, -1);
-	#echo "-4:" . substr($output, -4);
-	#echo "<br>";
-	#echo "-1:" . substr($output, -2);
-	#echo "kk" . substr($output, -5) . "kk";
 	$nota = intval(trim(substr($output, strrpos($output, "\n"), -1)));
-
-	#if (substr($output, -1) == "%") {
-	#	$nota = substr( substr($output, -3), 0, -1);
-	#} elseif (substr($output, -4) == ".OK!") {
-	#	$nota = 100;
-	#} else {
-	#	$nota = 0;
-	#}
-
-	#echo "<pre>-$nota-</pre>";
-	
-	# Running cxxtest tests (2 tests)..OK!
-	# Success rate: 50%
-	
 	$comando = "UPDATE tarefaturmaaluno SET " .
 			"resultados = :resultados , " .
 			"entregas = entregas + 1 , " .
@@ -128,11 +98,13 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"to_char(datafim, 'DD/MM/YYYY') as datafim, " .
 		"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega2, " .
 		"t.instrucoes , " .
+		"p.retorno , " .
 		"tta.* " .
 		"FROM " .
 		"tarefaturmaaluno tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
+		"INNER JOIN plugin p ON p.codplugin = t.codplugin " .
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
 		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
@@ -173,8 +145,10 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	}
 	echo "<h3>Resultado último envio:</h3>";
 	$res = $rowTarefaTurmaAluno["resultados"];
-	# ocultando saida cxxtest
-	#$res = substr($res, 0, strpos($res, "===="));
+	# ocultando saida
+	if ($rowTarefaTurmaAluno['retorno'] == 0) {
+		$res = substr($res, 0, strpos($res, "===="));
+	}
 	echo "<pre>$res</pre>";
 	echo "<h3>Arquivos enviados:</h3>";
 

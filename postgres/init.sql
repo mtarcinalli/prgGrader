@@ -24,6 +24,7 @@ CREATE TABLE curso (
 CREATE TABLE plugin (
         codplugin      SERIAL PRIMARY KEY,
         descricao     VARCHAR(200),
+        retorno       BOOLEAN,
         observacao    TEXT
 );
 
