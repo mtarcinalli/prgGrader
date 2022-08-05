@@ -38,7 +38,7 @@ class Formulario {
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		# creating directory		
-		if (! $cp && $ok) {
+		if (! isset($cp) && $ok) {
 			$cmd = "SELECT max(codplugin) AS cp FROM plugin";
 			$tbl = $db->prepare($cmd);
 			$tbl->execute();
@@ -61,9 +61,10 @@ class Formulario {
 				return;
 			}
 			# unziping
-			$cmd = "cd $uploaddir && " .
-				"rm -r corretor/* && " .
-				"unzip corretor.zip -d corretor/ ";
+			$cmd = "cd $uploaddir && pwd && " .
+				"rm -rf corretor/* && " .
+				"unzip corretor.zip -d corretor/ && ls corretor/";
+			echo $cmd;
 			$output = trim(shell_exec($cmd));
 			echo "<pre>$output</pre>";
 			if (! file_exists("$uploaddir/corretor/grader.sh")) {

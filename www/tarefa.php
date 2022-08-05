@@ -14,7 +14,7 @@ function formTarefa($codtarefaturmaaluno, $codaluno) {
 		<input type="hidden" name="modo" value="upload">
 		<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
 		<label for="arquivo">Selecione o arquivo a ser enviado:</label>
-		<input type="file" name="arquivo" id="arquivo" accept="*.zip" class="form-control">
+		<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
 		<button type="submit" class="btn btn-primary">Enviar arquivo</button>
 	</form>
 	<?php
@@ -25,6 +25,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"tt.codtarefa , " .
 		"t.sigla AS tarefasigla, ".
+		"t.codplugin, " .
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
 		#"tta.* " .
@@ -46,6 +47,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
 	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
+	$codplugin = $rowTarefaTurmaAluno['codplugin'];
 
 	$files = glob($uploaddir . "*");
 	foreach($files as $file){
@@ -57,40 +59,31 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
 		return;
-	}	
+	}
 
-	#echo '<pre>';
 	$cmd = "cd $uploaddir && ls && echo '---' && " .
 			#"rm !(arquivo.zip) -f && " .
 			"ls && " .
 			"unzip -j arquivo.zip && " .
-			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution.h . && " .
-			"cxxtestgen --error-printer --have-eh -o runner01.cpp solution.h 2>&1 && " .
-			"g++ -o runner01 runner01.cpp 2>&1 && " .
-			"echo '====' && " .
-			"timeout 8s ./runner01 2>&1";
-	#echo $cmd;
-	#$txt = exec($cmd, $output, $return_var);
-	#var_dump($output);
-	#var_dump($return_var);
-	#echo $txt;
-	#echo '</pre>';
+			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution/* . && " .
+			"cp ../../../../CORRETORES/PLUGIN" . $codplugin .  "/corretor/* . && " .
+			"bash ./grader.sh";
 	$output = trim(shell_exec($cmd));
-	#echo "<pre>$output</pre>";
 
 	#$output = substr($output, 0, -1);
 	#echo "-4:" . substr($output, -4);
 	#echo "<br>";
 	#echo "-1:" . substr($output, -2);
 	#echo "kk" . substr($output, -5) . "kk";
+	$nota = intval(trim(substr($output, strrpos($output, "\n"), -1)));
 
-	if (substr($output, -1) == "%") {
-		$nota = substr( substr($output, -3), 0, -1);
-	} elseif (substr($output, -4) == ".OK!") {
-		$nota = 100;
-	} else {
-		$nota = 0;
-	}
+	#if (substr($output, -1) == "%") {
+	#	$nota = substr( substr($output, -3), 0, -1);
+	#} elseif (substr($output, -4) == ".OK!") {
+	#	$nota = 100;
+	#} else {
+	#	$nota = 0;
+	#}
 
 	#echo "<pre>-$nota-</pre>";
 	
@@ -117,9 +110,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		return;
 	} else {
 		echo "<div class=\"alert alert-success\" role=\"alert\">Informações da avaliação salvas com sucesso!<br>Nota: $nota</div>";
-
 	}
-	
 }
 
 
