@@ -55,8 +55,8 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "cd $uploaddir && ls && echo '---' && " .
 			"ls && " .
 			"unzip -j arquivo.zip && " .
-			"cp ../../../../TAREFAS/T" . $codtarefa .  "/solution/* . && " .
-			"cp ../../../../CORRETORES/PLUGIN" . $codplugin .  "/corretor/* . && " .
+			"cp -a ../../../../TAREFAS/T" . $codtarefa .  "/solution/* . && " .
+			"cp -a ../../../../CORRETORES/PLUGIN" . $codplugin .  "/corretor/* . && " .
 			"bash ./grader.sh";
 	$output = trim(shell_exec($cmd));
 	$nota = intval(trim(substr($output, strrpos($output, "\n"), -1)));
