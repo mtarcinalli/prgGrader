@@ -45,7 +45,6 @@ class Formulario {
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
-
 		if (! $cp && $ok) {
 			$cmd = "SELECT max(codtarefa) AS cp FROM tarefa";
 			$tbl = $db->prepare($cmd);
@@ -53,23 +52,23 @@ class Formulario {
 			$row = $tbl->fetch();
 			$cp = $row["cp"];
 
-			$dir = "../uploads/TAREFAS/T$cp";
+			$dir = "../uploads/TAREFAS/T$cp/solution";
 			$cmd = "mkdir -p $dir";
 			$output = shell_exec($cmd);
 		}
-
 		if ($_FILES['arquivo']['tmp_name']) {
-			$uploadfile = "../uploads/TAREFAS/T$cp/solution.h";
+			$uploadfile = "../uploads/TAREFAS/T$cp/solution.zip";
 			if(is_file($uploadfile)) {
 					unlink($uploadfile);
 			}
-
 			if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
 				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
 				return;
 			}
+			$cmd = "rm -rf ../uploads/TAREFAS/T$cp/solution/* && " .
+				"unzip ../uploads/TAREFAS/T$cp/solution.zip -d ../uploads/TAREFAS/T$cp/solution/";
+			$output = shell_exec($cmd);
 		}
-
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro alterado com sucesso! [$acao]</div>";
 		} else {
