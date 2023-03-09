@@ -5,13 +5,16 @@ $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
 
 session_start();
 $codaluno = (isset($_SESSION['codaluno']) ? $_SESSION['codaluno'] : false);
-$codtipousuario = (isset($_SESSION['codtipousuario']) ? $_SESSION['codtipousuario'] : false);
+$codtipousuario = (isset($_SESSION['codtipousuario']) ? (int)$_SESSION['codtipousuario'] : false);
 $nome = (isset($_SESSION['nome']) ? $_SESSION['nome'] : false);
 
 if ($arquivo != "index.php" and ! $codaluno) {
 	header('Location: index.php');
 }
 
+
+if ((! isset($_REQUEST['modo'])) || (isset($_REQUEST['modo']) && ! substr($_REQUEST['modo'], 0, 8) == "download"))
+{
 ?>
 <!DOCTYPE html>
 <html>
@@ -84,3 +87,5 @@ if ($arquivo != "index.php" and ! $codaluno) {
 	<?php } ?>
 </nav>
 <div class="container">
+<?php
+}
