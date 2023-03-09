@@ -92,10 +92,10 @@ class Form {
 		if ($f) { 
 			while (!feof($f)) { 
 				$row = fgetcsv($f, 0, $delimitador, $cerca);
-				echo "<pre>$row[0]\t$row[1]</pre>";
-				if (!$row) {
+				if (! $row || $row[0] == "nome") {
 					continue;
 				}
+				echo "<pre>$row[0]\t$row[1]</pre>";
 				$_REQUEST['nome'] = $row[0];
 				$_REQUEST['email'] = $row[1];
 				$_REQUEST['senha'] = $row[2];
@@ -103,8 +103,7 @@ class Form {
 			}
 		}
 	}
-	
-	
+
 	function formulario() {
 		$db = $this->db;
 		$cmd = "SELECT t.*, c.descricao AS curso FROM turma t INNER JOIN curso c ON c.codcurso = t.codcurso WHERE codturma = :codturma";
