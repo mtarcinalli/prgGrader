@@ -1,5 +1,9 @@
 <?php require_once 'header.php';
 
+if ($codtipousuario > 3) {
+	die;
+}
+
 class Formulario {	
 	private $db;
 	private $modo;
