@@ -51,11 +51,16 @@ class Formulario {
 			$tbl->execute();
 			$row = $tbl->fetch();
 			$cp = $row["cp"];
-
+			# criando diretório solução
 			$dir = "../uploads/TAREFAS/T$cp/solution";
 			$cmd = "mkdir -p $dir";
 			$output = shell_exec($cmd);
+			# criando diretório modelo
+			$dir = "../uploads/TAREFAS/T$cp/model";
+			$cmd = "mkdir -p $dir";
+			$output = shell_exec($cmd);
 		}
+		# upload solução
 		if ($_FILES['arquivo']['tmp_name']) {
 			$uploadfile = "../uploads/TAREFAS/T$cp/solution.zip";
 			if(is_file($uploadfile)) {
@@ -67,6 +72,20 @@ class Formulario {
 			}
 			$cmd = "rm -rf ../uploads/TAREFAS/T$cp/solution/* && " .
 				"unzip ../uploads/TAREFAS/T$cp/solution.zip -d ../uploads/TAREFAS/T$cp/solution/";
+			$output = shell_exec($cmd);
+		}
+		# upload modelo
+		if ($_FILES['arquivoaluno']['tmp_name']) {
+			$uploadfile = "../uploads/TAREFAS/T$cp/model.zip";
+			if(is_file($uploadfile)) {
+					unlink($uploadfile);
+			}
+			if (!move_uploaded_file($_FILES['arquivoaluno']['tmp_name'], $uploadfile)) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
+				return;
+			}
+			$cmd = "rm -rf ../uploads/TAREFAS/T$cp/model/* && " .
+				"unzip ../uploads/TAREFAS/T$cp/model.zip -d ../uploads/TAREFAS/T$cp/model/";
 			$output = shell_exec($cmd);
 		}
 		if ($ok) {
@@ -111,6 +130,8 @@ class Formulario {
 				"<th></th>" .
 				"<th></th>" .
 				"<th></th>" .
+				"<th></th>" .
+				"<th></th>" .
 				"<th>Tarefa</th>" .
 				"<th>Sigla</th>" .
 				"<th>Instruções</th>" .
@@ -122,6 +143,8 @@ class Formulario {
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
 			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-send\"></a> </td>";
+			echo "<td><a href='?modo=downloadSolucao&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-exclamation-sign\"></a></td>";
+			echo "<td><a href='?modo=downloadModelo&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-file\"></a></td>";
 			echo "<td>$row[descricao]</td>";
 			echo "<td>$row[sigla]</td>";
 			echo "<td>" . nl2br($row['instrucoes']) . "</td>";
@@ -129,6 +152,12 @@ class Formulario {
 			echo "</tr>";
 		}
 		echo "</table>";
+		echo "<h4>Legenda:</h4>";
+		echo "<span class=\"glyphicon glyphicon-trash\"></span> Excluir<br>";
+		echo "<span class=\"glyphicon glyphicon-pencil\"></span> Alterar<br>";
+		echo "<span class=\"glyphicon glyphicon-send\"></span> Atribuir para alunos<br>";
+		echo "<span class=\"glyphicon glyphicon-exclamation-sign\"></span> Download arquivo de solução<br>";
+		echo "<span class=\"glyphicon glyphicon-file\"></span> Download arquivo de modelo<br>";
 	}	
 
 	function formulario() {
@@ -166,9 +195,9 @@ class Formulario {
 					?>
 				</select>
 				<label for="arquivo">Arquivo solução:</label>
-				<input type="file" name="arquivo" id="arquivo" accept=".h" class="form-control">
+				<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
 				<label for="arquivo">Arquivo modelo aluno:</label>
-				<input type="file" name="arquivoaluno" id="arquivoaluno" accept=".h" class="form-control">
+				<input type="file" name="arquivoaluno" id="arquivoaluno" accept=".zip" class="form-control">
 				<label for="observacao">Observações:</label>
 				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
 				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
@@ -186,14 +215,10 @@ class Formulario {
 		if ($this->modo == "salvar") {
 			$this->salvar();
 		}
-
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-
-
-		$this->formulario();	
-	
+		$this->formulario();
 		$this->listar();
 	}
 }
@@ -206,11 +231,7 @@ class Formulario {
 
 $frm = new Formulario($arquivo, $db);
 
-
-
-
 ?>
-
 </div>
 </body>
 </html>
