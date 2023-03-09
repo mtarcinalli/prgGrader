@@ -4,3 +4,10 @@ docker build -t docker-test:latest .
 docker run -d -p 8081:80 --name pgrader --rm docker-test:latest
 
 docker stop pgrader
+
+
+-----
+
+docker-compose build
+
+docker-compose up

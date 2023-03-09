@@ -12,8 +12,8 @@ services:
         POSTGRES_PASSWORD: sn2144a
         POSTGRES_USER: pgrader
         POSTGRES_DB: pgrader
-        #ports:
-        #  - "54320:5432"
+      #ports:
+      #  - 54320:5432
     webserver:
         container_name: php-apache
         build:
