@@ -1,15 +1,18 @@
 <?php require_once 'header.php';
 
+if ($codtipousuario > 3) {
+	die;
+}
 
 class Formulario {
-	
 	private $db;
+	private $cp;
 	private $modo;
 	private $arquivo;
-	
-	
+
 	function __construct($arquivo, $db) {
 		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
+		$this->cp = (isset($_REQUEST['cod']) && is_numeric($_REQUEST['cod']) ? $_REQUEST['cod'] : null);
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		$this->acao();
@@ -143,8 +146,12 @@ class Formulario {
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
 			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-send\"></a> </td>";
-			echo "<td><a href='?modo=downloadSolucao&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-exclamation-sign\"></a></td>";
-			echo "<td><a href='?modo=downloadModelo&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-file\"></a></td>";
+			echo "<td>";
+			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/solution.zip") ? "<a href='?modo=downloadSolucao&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-exclamation-sign\"></a>" : "");
+			echo "</td>";
+			echo "<td>";
+			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/model.zip") ? "<a href='?modo=downloadModelo&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-file\"></a>" : "");
+			echo "</td>";
 			echo "<td>$row[descricao]</td>";
 			echo "<td>$row[sigla]</td>";
 			echo "<td>" . nl2br($row['instrucoes']) . "</td>";
@@ -210,6 +217,32 @@ class Formulario {
 		<br>
 		<?php
 	}
+
+	function download() {
+		if (! $this->cp) {
+			return false;
+		}
+		if ($this->modo == "downloadSolucao") {
+			$nomeArquivo = "../uploads/TAREFAS/T$this->cp/solution.zip";
+		}
+		if ($this->modo == "downloadModelo") {
+			$nomeArquivo = "../uploads/TAREFAS/T$this->cp/model.zip";
+		}
+		if (! file_exists($nomeArquivo)) {
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao baixar arquivo! [inexistente]</div>";	
+			return false;
+		}
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header("Cache-Control: no-cache, must-revalidate");
+		header("Expires: 0");
+		header('Content-Disposition: attachment; filename="'.basename($nomeArquivo).'"');
+		header('Content-Length: ' . filesize($nomeArquivo));
+		header('Pragma: public');
+		flush();
+		readfile($nomeArquivo);
+		die();
+	}
 	
 	function acao() {
 		if ($this->modo == "salvar") {
@@ -218,19 +251,17 @@ class Formulario {
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
+		if ($this->modo == "downloadModelo" || $this->modo == "downloadSolucao") {
+			$this->download();
+		}
 		$this->formulario();
 		$this->listar();
 	}
 }
 
-
-
-
-
 #error_reporting(E_ALL);
 
 $frm = new Formulario($arquivo, $db);
-
 ?>
 </div>
 </body>
