@@ -4,21 +4,21 @@ if ($codtipousuario > 3) {
 	die;
 }
 
-class Form {	
+class Form {
 	private $db;
 	private $modo;
 	private $arquivo;
-	
+
 	function __construct($arquivo, $db) {
 		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
 		$this->db = $db;
 		$this->acao();
 	}
-	
+
 	function salvar() {
 		$db = $this->db;
-		if ($_REQUEST['codtarefaturma']) {
+		if (isset($_REQUEST['codtarefaturma'])) {
 			# alterando
 			$cmd = "UPDATE tarefaturma " .
 				"SET ".
@@ -89,13 +89,41 @@ class Form {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!</div>";
 		}
 	}
-	
+
 	function excluir() {
 		$db = $this->db;
+		$cmd = "SELECT count(*) FROM tarefaturmaaluno WHERE codtarefaturma = :codtarefaturma AND entregas > 0";
+		$stmt = $db->prepare($cmd);
+		$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
+		$stmt->execute();
+		$qtdRegs = $stmt->fetchColumn();
+		if ($qtdRegs == 0) {
+			$cmd = "DELETE FROM tarefaturmaaluno WHERE codtarefaturma = :codtarefaturma";
+			$stmt = $db->prepare($cmd);
+			$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
+			try {
+				$ok = $stmt->execute();
+			} catch (Exception $e) {
+				$ok = false;
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro (atribuição)!</div>";
+				return;
+			}
+		} else {
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Algum aluno já realizou envio de tarefa!</div>";
+			return;
+		}
 		$cmd = "DELETE FROM tarefaturma where codtarefaturma = :codtarefaturma";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
-		$ok = $stmt->execute();
+		try {
+			$ok = $stmt->execute();
+		} catch (Exception $e) {
+			$ok = false;
+			if ($e->getCode() == 23503) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Atribuição de tarefa ainda possui registros relacionados!</div>";
+				return;
+			}
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
 		} else {
@@ -120,14 +148,14 @@ class Form {
 					}
 				}
 			}
-		} 
+		}
 		if ($ok) {
 			echo "<div class=\"alert alert-success\" role=\"alert\">Notas finais salvas com sucesso!</div>";
 		} else {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro salvar notas finais!</div>";
 		}
 	}
-	
+
 	function formulario() {
 		$db = $this->db;
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
@@ -191,7 +219,7 @@ class Form {
 					<input type="date" name="datafim" id="datafim" class="form-control" placeholder="Data de término" value="<?php echo (isset($rowTurma) ? $rowTurma['datafim'] : ""); ?>">
 				</div>
 			</div>
-			<div class="form-group">			
+			<div class="form-group">
 				<label for="observacao" class="col-sm-2 control-label">Observações:</label>
 				<div class="col-sm-9">
 					<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTurma) ? $rowTurma["observacao"] : ""); ?></textarea>
@@ -203,7 +231,7 @@ class Form {
 						echo "<input type=\"hidden\" name=\"codtarefaturma\" value=\"$rowTurma[codtarefaturma]\">";
 					}
 					?>
-					<input type="hidden" name="modo" value="salvar">			
+					<input type="hidden" name="modo" value="salvar">
 					<button type="submit" class="btn btn-primary">Salvar</button>
 				</div>
 			</div>
@@ -257,8 +285,8 @@ class Form {
 				<td colspan="4"><a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4></td>
 				<td>
 					<input type="hidden" name="codtarefa" value="<?php echo $_REQUEST['codtarefa']; ?>">
-					<input type="hidden" name="modo" value="salvarNotas">			
-					<button type="submit" class="btn btn-secondary">Salvar Notas</button>	
+					<input type="hidden" name="modo" value="salvarNotas">
+					<button type="submit" class="btn btn-secondary">Salvar Notas</button>
 				</td>
 			</tr>
 			<tr>
@@ -277,7 +305,7 @@ class Form {
 								"tta.nota " .
 								"FROM tarefaturmaaluno tta " .
 								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
-								"WHERE codtarefaturma =  :codtarefaturma " . 
+								"WHERE codtarefaturma =  :codtarefaturma " .
 								"ORDER BY nome ASC";
 						$tblAlunos = $db->prepare($cmd);
 						$tblAlunos->bindValue(':codtarefaturma', $row['codtarefaturma'], PDO::PARAM_INT);
@@ -309,7 +337,6 @@ class Form {
 								echo "<tr><td colspan='5'><pre>";
 								echo "Diretório: TURMA$row[codturma]/TTURMA$row[codtarefaturma]/TTALUNO$rowAluno[codtarefaturmaaluno]\n";
 								echo $rowAluno["resultados"];
-								
 								echo "</pre></td></tr>";
 							}
 						}
@@ -322,46 +349,28 @@ class Form {
 			<?php
 		}
 		echo "</table>";
-	}	
+	}
 
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
 		}
-
 		if ($this->modo == "salvarNotas") {
 			$this->salvarNotas();
 		}
-
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-
 		if ($this->modo == "upload") {
 			$this->importarAlunos();
 		}
-
-
 		$this->formulario();
-	
-	
 		$this->listar();
 	}
 }
 
-
-
-
-
-#error_reporting(E_ALL);
-
 $frm = new Form($arquivo, $db);
-
-
-
-
 ?>
-
 </div>
 </body>
 </html>
