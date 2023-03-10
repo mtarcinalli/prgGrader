@@ -1,10 +1,11 @@
 <?php
 require_once 'header.php';
 
-if (! $db)
+if (! $db) {
 	echo "não abriu bd";
+}
 
-$codtarefaturmaaluno = @$_REQUEST['codtarefaturmaaluno'];
+$codtarefaturmaaluno = (isset($_REQUEST['codtarefaturmaaluno']) && is_numeric($_REQUEST['codtarefaturmaaluno']) ? $_REQUEST['codtarefaturmaaluno'] : null);
 $modo = @$_REQUEST['modo'];
 
 function formTarefa($codtarefaturmaaluno, $codaluno) {
@@ -17,6 +18,36 @@ function formTarefa($codtarefaturmaaluno, $codaluno) {
 		<button type="submit" class="btn btn-primary">Enviar arquivo</button>
 	</form>
 	<?php
+}
+
+function downloadModelo($db, $codtarefaturmaaluno, $codaluno) {
+	$cmd = "SELECT " .
+		"tt.codtarefa " .
+		"FROM " .
+		"tarefaturmaaluno tta " .
+		"INNER JOIN tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
+		"WHERE codtarefaturmaaluno = $codtarefaturmaaluno AND tta.codaluno = $codaluno";
+	$tblTarefaTurmaAluno = $db->prepare($cmd);
+	$tblTarefaTurmaAluno->execute();
+	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
+	if (! $rowTarefaTurmaAluno) {
+		return;
+	}
+	$nomeArquivo = "../uploads/TAREFAS/T$rowTarefaTurmaAluno[codtarefa]/model.zip";
+	if (! file_exists($nomeArquivo)) {
+		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao baixar arquivo! [inexistente]</div>";
+		return false;
+	}
+	header('Content-Description: File Transfer');
+	header('Content-Type: application/octet-stream');
+	header("Cache-Control: no-cache, must-revalidate");
+	header("Expires: 0");
+	header('Content-Disposition: attachment; filename="'.basename($nomeArquivo).'"');
+	header('Content-Length: ' . filesize($nomeArquivo));
+	header('Pragma: public');
+	flush();
+	readfile($nomeArquivo);
+	die();
 }
 
 function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
@@ -34,7 +65,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
 		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
-		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
+		"WHERE codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
 	$tblTarefaTurmaAluno = $db->prepare($cmd);
 	$tblTarefaTurmaAluno->execute();
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
@@ -83,13 +114,11 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	}
 }
 
-
-
-
 function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$cmd = "select " .
 		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
+		"tt.codtarefa , " .
 		"tt.codturma , " .
 		"tu.codcurso , " .
 		"tu.descricao AS turma , " .
@@ -102,7 +131,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"tta.* " .
 		"FROM " .
 		"tarefaturmaaluno tta " .
-		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
+		"INNER JOIN tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
 		"INNER JOIN plugin p ON p.codplugin = t.codplugin " .
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
@@ -128,8 +157,16 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"<td><b>PRAZO DE: </b> $rowTarefaTurmaAluno[datainicio] ".
 			"<b>até</b> $rowTarefaTurmaAluno[datafim]</td>".
 			"</tr><tr>" .
-			"<td colspan='2'><b>Instruções:</b><br>" . nl2br($rowTarefaTurmaAluno['instrucoes']) . "</td>" .
-			"</tr><tr>" .
+			"<td colspan='2'>" .
+			"<b>Instruções:</b><br>" .
+			nl2br($rowTarefaTurmaAluno['instrucoes']) .
+			"</td></tr>";
+
+	if (file_exists("../uploads/TAREFAS/T$rowTarefaTurmaAluno[codtarefa]/model.zip")) {
+		echo "<tr><td colspan='2'><b>Modelo:</b> ";
+		echo "<a href='?modo=downloadModelo&amp;codtarefaturmaaluno=$codtarefaturmaaluno'\"><span class=\"glyphicon glyphicon-file\"></a></td></tr>";
+	}
+	echo "<tr>" .
 			"<td><b>Último envio:<b> $rowTarefaTurmaAluno[dataentrega2]</td>".
 			"<td><b>Envios:</b> $rowTarefaTurmaAluno[entregas]</td>".
 			"</tr><tr>" .
@@ -323,6 +360,10 @@ function listaNotas($db, $codaluno) {
 
 if ($modo == "upload") {
 	enviaTarefa($db, $codtarefaturmaaluno, $codaluno);
+}
+
+if ($modo == "downloadModelo") {
+	downloadModelo($db, $codtarefaturmaaluno, $codaluno);
 }
 
 if ($codtarefaturmaaluno) {

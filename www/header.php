@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once 'conectdb.php';
 # Nome do Arquivo
 $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
@@ -12,9 +12,14 @@ if ($arquivo != "index.php" and ! $codaluno) {
 	header('Location: index.php');
 }
 
+$showHeader = true;
+if (! isset($_REQUEST['modo'])) {
+	$showHeader = true;
+} elseif (substr($_REQUEST['modo'], 0, 8) == "download") {
+	$showHeader = false;
+}
 
-if ((! isset($_REQUEST['modo'])) || (isset($_REQUEST['modo']) && ! substr($_REQUEST['modo'], 0, 8) == "download"))
-{
+if ($showHeader) {
 ?>
 <!DOCTYPE html>
 <html>
@@ -30,21 +35,17 @@ if ((! isset($_REQUEST['modo'])) || (isset($_REQUEST['modo']) && ! substr($_REQU
 		.option-button {
 		    height:100%;
 		}
-		
 		.media-object {
 		    height: 100px;
 		}
-
 		#lista img {
 			max-width: 100%;
 		}
-		
 		@media print {
 			.noPrint {
 				display:none;
 			}
 		}
-		
 	</style>
 </head>
 <body>
@@ -53,13 +54,13 @@ if ((! isset($_REQUEST['modo'])) || (isset($_REQUEST['modo']) && ! substr($_REQU
 		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>                        
+			<span class="icon-bar"></span>
 		</button>
-   		<a class="navbar-brand" href="#">prgGrader</a>
-  	</div>
+		<a class="navbar-brand" href="#">prgGrader</a>
+	</div>
 	<?php if ($codtipousuario) { ?>
-   	<div class="collapse navbar-collapse" id="myNavbar">
-    	<ul class="nav navbar-nav">
+	<div class="collapse navbar-collapse" id="myNavbar">
+		<ul class="nav navbar-nav">
 			<li><a href="tarefa.php">Tarefas</a></li>
 			<?php if ($codtipousuario < 4) { ?>
 				<li><a href="cadcurso.php">Cursos</a></li>
@@ -68,20 +69,15 @@ if ((! isset($_REQUEST['modo'])) || (isset($_REQUEST['modo']) && ! substr($_REQU
 				<li><a href="cadplugin.php">Corretores</a></li>
 				<li><a href="cadtarefa.php">Tarefas</a></li>
 				<li><a href="relnotas.php">Notas</a></li>
-			<?php } ?>      		
-    	</ul>
+			<?php } ?>
+		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span> Usuário <span class="caret"></span></a>
-			
-			
 			<ul class="dropdown-menu">
 			  <li><a href="#"><?php echo$nome; ?></a></li>
 			  <li><a href="altsenha.php">Alterar Senha</a></li>
-			</ul>			
-			
-			
+			</ul>
 			<li><a href="index.php"><span class="glyphicon glyphicon-log-in"></span> Sair</a></li>
-			
 		</ul>
 	</div>
 	<?php } ?>
