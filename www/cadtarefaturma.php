@@ -131,6 +131,23 @@ class Form {
 		}
 	}
 
+	function excluirAluno() {
+		$db = $this->db;
+		$cmd = "DELETE FROM tarefaturmaaluno where codtarefaturmaaluno = :codtarefaturmaaluno";
+		$stmt = $db->prepare($cmd);
+		$stmt->bindValue(':codtarefaturmaaluno', $_REQUEST['codtarefaturmaaluno'], PDO::PARAM_INT);
+		try {
+			$ok = $stmt->execute();
+		} catch (Exception $e) {
+			$ok = false;
+		}
+		if ($ok) {
+			echo "<div class=\"alert alert-success\" role=\"alert\">Registro excluído com sucesso!</div>";
+		} else {
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
+		}
+	}
+
 	function salvarNotas() {
 		$db = $this->db;
 		$ok = true;
@@ -269,7 +286,8 @@ class Form {
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) " .
+			"window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
 			echo "<td>$row[codtarefaturma]</td>";
 			echo "<td>$row[turma]($row[codturma])</td>";
@@ -313,6 +331,7 @@ class Form {
 						echo "";
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
+							"<th></th>" .
 							"<th>Cod</th>" .
 							"<th>Aluno</th>" .
 							"<th>Data</th>" .
@@ -322,6 +341,10 @@ class Form {
 							"</tr>";
 						while ($rowAluno = $tblAlunos->fetch()) {
 							echo "<tr>" .
+									"<td>" .
+									"<a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?" .
+									"modo=excluirAluno&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]&amp;codtarefaturmaaluno=$rowAluno[codtarefaturmaaluno]'\">" .
+									"<span class=\"glyphicon glyphicon-trash\"></span></a> </td>" .
 									"<td>" .
 									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmaaluno]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
 									"$rowAluno[codtarefaturmaaluno]" .
@@ -360,6 +383,9 @@ class Form {
 		}
 		if ($this->modo == "exclui") {
 			$this->excluir();
+		}
+		if ($this->modo == "excluirAluno") {
+			$this->excluirAluno();
 		}
 		if ($this->modo == "upload") {
 			$this->importarAlunos();
