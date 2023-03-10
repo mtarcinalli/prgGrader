@@ -4,11 +4,11 @@ if ($codtipousuario > 3) {
 	die;
 }
 
-class Formulario {	
+class Formulario {
 	private $db;
 	private $modo;
 	private $arquivo;
-	
+
 	function __construct($arquivo, $db) {
 		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
@@ -17,7 +17,7 @@ class Formulario {
 			echo "não abriu bd";
 		$this->acao();
 	}
-	
+
 	function salvar() {
 		$db = $this->db;
 		if ($_REQUEST['cp'] != "") {
@@ -50,7 +50,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
 	}
-	
+
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM turma where codturma = :codturma";
@@ -71,7 +71,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
 		}
 	}
-		
+
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT " .
@@ -97,15 +97,15 @@ class Formulario {
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
 			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\"><span class=\"glyphicon glyphicon-education\"></span></a> </td>";
-			echo "<td>$row[curso]</td>" . 
+			echo "<td>$row[curso]</td>" .
 				"<td>$row[descricao]</td>" .
 				"<td>$row[sigla]</td>" .
 				"<td>$row[observacao]</td>";
 			echo "</tr>";
 		}
 		echo "</table>";
-	}	
-	
+	}
+
 	function formulario() {
 		$db = $this->db;
 		if ($this->modo =="alterar") {
@@ -148,9 +148,9 @@ class Formulario {
 			</div>
 		</form>
 		<br>
-		<?php	
+		<?php
 	}
-	
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
@@ -158,12 +158,11 @@ class Formulario {
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-		$this->formulario();	
+		$this->formulario();
 		$this->listar();
 	}
 }
 
-#error_reporting(E_ALL);
 $frm = new Formulario($arquivo, $db);
 ?>
 </div>
