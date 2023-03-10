@@ -26,6 +26,5 @@ services:
           - ./uploads:/var/www/uploads/
         ports:
           - 8000:80
-
 volumes:
     data:
