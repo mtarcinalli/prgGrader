@@ -1,51 +1,50 @@
-<?php 
+<?php
 session_start();
-$_SESSION['codaluno'] = 0; 
-$_SESSION['codtipousuario'] = 0; 
-$_SESSION['nome'] = 0; 
-
+$_SESSION['codaluno'] = 0;
+$_SESSION['codtipousuario'] = 0;
+$_SESSION['nome'] = 0;
 $codtipousuario = 0;
 $codaluno = 0;
 
-
 if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 	require_once 'conectdb.php';
-
-	if (! $db)
+	if (! $db) {
 		echo "não abriu bd";
-	
+	}
 	$cmd = "SELECT codaluno, codtipousuario, nome, alterasenha " .
 			"FROM aluno " .
 			"WHERE email = :email " .
 			"AND senha = :senha";
-	
 	$tblLogin = $db->prepare($cmd);
 	$senha = md5($_REQUEST['senha']);
 	$tblLogin->bindParam(':email', $_REQUEST['usuario']);
 	$tblLogin->bindParam(':senha', $senha);
 	$tblLogin->execute();
-	
 	if ($row = $tblLogin->fetch()) {
 		$_SESSION['codaluno'] = $row['codaluno'];
 		$_SESSION['codtipousuario'] = $row['codtipousuario'];
 		$_SESSION['nome'] = $row['nome'];
-		if ($row["alterasenha"])
-			header('Location: altsenha.php');
-		else
-			header('Location: tarefa.php');
+		$site = $_SERVER['HTTP_REFERER'];
+		if (str_contains($site, "index.php")) {
+				$site = str_replace("index.php", "", $site);
+		}
+		if ($site[-1] != '/') {
+				$site .= '/';
+		}
+		$_SESSION['site'] = $site;
+		if ($row["alterasenha"]) {
+				header("Location: $_SESSION[site]altsenha.php");
+		} else {
+				header("Location: $_SESSION[site]tarefa.php");
+		}
 	} else {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Usuário ou senha inválidos!</div>";
-	} 
-
-
-	
+	}
 } elseif (@$_REQUEST['usuario']) {
 	echo "<div class=\"alert alert-danger\" role=\"alert\">Digite uma senha!</div>";
 } elseif (@$_REQUEST['senha']) {
 	echo "<div class=\"alert alert-danger\" role=\"alert\">Digite um usuário!</div>";
 }
-
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -61,21 +60,17 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 		.option-button {
 		    height:100%;
 		}
-		
 		.media-object {
 		    height: 100px;
 		}
-
 		#lista img {
 			max-width: 100%;
 		}
-		
 		@media print {
 			.noPrint {
 				display:none;
 			}
 		}
-		
 	</style>
 </head>
 <body>
@@ -84,14 +79,12 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>                        
+			<span class="icon-bar"></span>
 		</button>
-   		<a class="navbar-brand" href="#">prgGrader</a>
-  	</div>
+		<a class="navbar-brand" href="#">prgGrader</a>
+	</div>
 </nav>
-
 <div class="container">
-
 <form method="post">
   <div class="form-group">
     <label for="usuario">Usuário (e-mail):</label>
@@ -103,8 +96,6 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
   </div>
   <button type="submit" class="btn btn-primary">Enviar</button>
 </form>
-
-
 </div>
 </body>
 </html>
