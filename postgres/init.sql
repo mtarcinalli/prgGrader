@@ -3,8 +3,8 @@ CREATE TABLE tipousuario (
         descricao     VARCHAR(100)
 );
 
-CREATE TABLE aluno (
-        codaluno SERIAL PRIMARY KEY,
+CREATE TABLE usuario (
+        codusuario SERIAL PRIMARY KEY,
         codtipousuario INTEGER NOT NULL,
         nome  VARCHAR(200),
         email VARCHAR(200) UNIQUE NOT NULL,
@@ -58,31 +58,31 @@ CREATE TABLE tarefaturma (
         FOREIGN KEY(codtarefa) REFERENCES tarefa(codtarefa)
 );
 
-CREATE TABLE tarefaturmaaluno (
-        codtarefaturmaaluno   SERIAL PRIMARY KEY,
+CREATE TABLE tarefaturmausuario (
+        codtarefaturmausuario   SERIAL PRIMARY KEY,
         codtarefaturma        INTEGER NOT NULL,
-        codaluno      INTEGER NOT NULL,
+        codusuario      INTEGER NOT NULL,
         dataentrega   DATE,
         entregas      INTEGER DEFAULT 0,
         resultados    TEXT,
         nota  INTEGER,
         notafinal INTEGER,
         observacao    TEXT,
-        FOREIGN KEY(codaluno) REFERENCES aluno(codaluno),
+        FOREIGN KEY(codusuario) REFERENCES usuario(codusuario),
         FOREIGN KEY(codtarefaturma) REFERENCES tarefaturma(codtarefaturma)
 );
 
-CREATE TABLE turmaaluno (
-        codturmaaluno SERIAL PRIMARY KEY,
+CREATE TABLE turmausuario (
+        codturmausuario SERIAL PRIMARY KEY,
         codturma      INTEGER NOT NULL,
-        codaluno      INTEGER NOT NULL,
+        codusuario      INTEGER NOT NULL,
         FOREIGN KEY(codturma) REFERENCES turma(codturma),
-        UNIQUE(codturma,codaluno),
-        FOREIGN KEY(codaluno) REFERENCES aluno(codaluno)
+        UNIQUE(codturma,codusuario),
+        FOREIGN KEY(codusuario) REFERENCES usuario(codusuario)
 );
 
 INSERT INTO tipousuario (descricao) VALUES ('Administrador');
 INSERT INTO tipousuario (descricao) VALUES ('Professor');
 INSERT INTO tipousuario (descricao) VALUES ('Assistente');
 INSERT INTO tipousuario (descricao) VALUES ('Aluno');
-INSERT INTO aluno (codtipousuario, nome, email, senha, alterasenha) VALUES (1, 'admin', 'admin', '21232f297a57a5a743894a0e4a801fc3', true);
+INSERT INTO usuario (codtipousuario, nome, email, senha, alterasenha) VALUES (1, 'admin', 'admin', '21232f297a57a5a743894a0e4a801fc3', true);
