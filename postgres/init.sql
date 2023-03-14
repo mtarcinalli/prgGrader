@@ -81,6 +81,15 @@ CREATE TABLE turmausuario (
         FOREIGN KEY(codusuario) REFERENCES usuario(codusuario)
 );
 
+CREATE TABLE acessocurso (
+        codacessocurso SERIAL PRIMARY KEY,
+        codcurso INTEGER NOT NULL,
+        codusuario INTEGER NOT NULL,
+        FOREIGN KEY(codcurso) REFERENCES curso(codcurso),
+        FOREIGN KEY(codusuario) REFERENCES usuario(codusuario),
+        UNIQUE(codcurso,codusuario)
+);
+
 INSERT INTO tipousuario (descricao) VALUES ('Administrador');
 INSERT INTO tipousuario (descricao) VALUES ('Professor');
 INSERT INTO tipousuario (descricao) VALUES ('Assistente');
