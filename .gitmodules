@@ -1,0 +1,3 @@
+[submodule "src/modules/obj2db"]
+	path = src/modules/obj2db
+	url = git@gitlab.uspdigital.usp.br:sidcm/obj2db.git
