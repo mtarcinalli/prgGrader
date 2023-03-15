@@ -1,14 +1,26 @@
 <?php
 require_once 'conectdb.php';
+
+function autoloader($class) {
+	$class = strtolower($class);
+	if ($class == "form0" || $class == "obj2db") {
+		include("../src/modules/obj2db/src/" . $class . ".php");
+		return;
+	}
+	include("../src/classes/" . $class . ".php");
+}
+spl_autoload_register("autoloader");
+
+
 # Nome do Arquivo
 $arquivo = substr(strrchr($_SERVER['SCRIPT_FILENAME'], "/"), 1 );
 
 session_start();
-$codaluno = (isset($_SESSION['codaluno']) ? $_SESSION['codaluno'] : false);
+$codusuario = (isset($_SESSION['codusuario']) ? $_SESSION['codusuario'] : false);
 $codtipousuario = (isset($_SESSION['codtipousuario']) ? (int)$_SESSION['codtipousuario'] : false);
 $nome = (isset($_SESSION['nome']) ? $_SESSION['nome'] : false);
 
-if ($arquivo != "index.php" and ! $codaluno) {
+if ($arquivo != "index.php" and ! $codusuario) {
 	header('Location: index.php');
 }
 
@@ -27,10 +39,11 @@ if ($showHeader) {
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>prgGrader</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link type="text/css" rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 	<style>
 		.option-button {
 		    height:100%;
@@ -49,35 +62,35 @@ if ($showHeader) {
 	</style>
 </head>
 <body>
-<nav class="navbar navbar-default">
-	<div class="navbar-header">
-		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
-		</button>
-		<a class="navbar-brand" href="#">prgGrader</a>
-	</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<a class="navbar-brand" href="index.php">prgGrader</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#myNavbar" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+
 	<?php if ($codtipousuario) { ?>
 	<div class="collapse navbar-collapse" id="myNavbar">
-		<ul class="nav navbar-nav">
-			<li><a href="tarefa.php">Tarefas</a></li>
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item"><a class="nav-link" href="tarefa.php">Tarefas</a></li>
 			<?php if ($codtipousuario < 4) { ?>
-				<li><a href="cadcurso.php">Cursos</a></li>
-				<li><a href="cadturma.php">Turmas</a></li>
-				<li><a href="cadaluno.php">Usuários</a></li>
-				<li><a href="cadplugin.php">Corretores</a></li>
-				<li><a href="cadtarefa.php">Tarefas</a></li>
-				<li><a href="relnotas.php">Notas</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadcurso.php">Cursos</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadturma.php">Turmas</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadaluno.php">Usuários</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadplugin.php">Corretores</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadtarefa.php">Tarefas</a></li>
+				<li class="nav-item"><a class="nav-link" href="relnotas.php">Notas</a></li>
 			<?php } ?>
 		</ul>
-		<ul class="nav navbar-nav navbar-right">
-			<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span> Usuário <span class="caret"></span></a>
-			<ul class="dropdown-menu">
-			  <li><a href="#"><?php echo$nome; ?></a></li>
-			  <li><a href="altsenha.php">Alterar Senha</a></li>
-			</ul>
-			<li><a href="index.php"><span class="glyphicon glyphicon-log-in"></span> Sair</a></li>
+		<ul class="navbar-nav navbar-right">
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Usuário
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" href="#"><?php echo$nome; ?></a>
+					<a class="dropdown-item" href="altsenha.php">Alterar Senha</a>
+			</li>
+			<li class="nav-item"><a class="nav-link" href="index.php"><span class="glyphicon glyphicon-log-in"></span> Sair</a></li>
 		</ul>
 	</div>
 	<?php } ?>
