@@ -25,6 +25,7 @@ services:
           - ./www:/var/www/html/
           - ./src:/var/www/src/
           - ./uploads:/var/www/uploads/
+          - ./tests:/var/www/tests/
         ports:
           - 8000:80
 volumes:
