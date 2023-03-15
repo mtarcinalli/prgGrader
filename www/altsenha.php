@@ -1,18 +1,19 @@
 <?php 
 require_once 'header.php';
 
-if (! $db)
+if (! $db) {
 	echo "não abriu bd";
+}
 
 $cmd = "select " .
 	"nome, email " .
 	"from " .
-	"aluno a " .
-	"WHERE codaluno = :codaluno";
-$tblAluno = $db->prepare($cmd);
-$tblAluno->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
-$tblAluno->execute();
-$rowAluno = $tblAluno->fetch();
+	"usuario " .
+	"WHERE codusuario = :codusuario";
+$tblUsuario = $db->prepare($cmd);
+$tblUsuario->bindValue(':codusuario', $codusuario, PDO::PARAM_INT);
+$tblUsuario->execute();
+$rowUsuario = $tblUsuario->fetch();
 
 if (isset($_REQUEST['senha']) && isset($_REQUEST['senha2'])) {
 	if ($_REQUEST['senha'] != $_REQUEST['senha2']) {
@@ -20,11 +21,11 @@ if (isset($_REQUEST['senha']) && isset($_REQUEST['senha2'])) {
 	} elseif (strlen($_REQUEST['senha']) < 5) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Senha deve ter mais que 5 caracteres!</div>";
 	} else {
-		$cmd = "UPDATE aluno SET " .
+		$cmd = "UPDATE usuario SET " .
 			"senha = :senha , alterasenha = false " .
-			"WHERE codaluno = :codaluno";
+			"WHERE codusuario = :codusuario";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+		$stmt->bindValue(':codusuario', $codusuario, PDO::PARAM_INT);
 		$stmt->bindValue(':senha', md5($_REQUEST['senha']), PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		if ($ok) {
@@ -35,18 +36,16 @@ if (isset($_REQUEST['senha']) && isset($_REQUEST['senha2'])) {
 	}
 }
 ?>
-
-
 <form method="post">
   <div class="form-group">
     <label for="usuario">Nome:</label>
 	<br>
-    <?php echo $rowAluno['nome']; ?>
+    <?php echo $rowUsuario['nome']; ?>
   </div>
   <div class="form-group">
     <label for="usuario">Usuário:</label>
 	<br>
-    <?php echo $rowAluno['email']; ?>
+    <?php echo $rowUsuario['email']; ?>
   </div>
   <div class="form-group">
     <label for="senha">Senha:</label>
@@ -58,8 +57,6 @@ if (isset($_REQUEST['senha']) && isset($_REQUEST['senha2'])) {
   </div>
   <button type="submit" class="btn btn-primary">Salvar</button>
 </form>
-
-
 </div>
 </body>
 </html>
