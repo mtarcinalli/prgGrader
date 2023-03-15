@@ -1,18 +1,18 @@
 <?php
 session_start();
-$_SESSION['codaluno'] = 0;
+$_SESSION['codusuario'] = 0;
 $_SESSION['codtipousuario'] = 0;
 $_SESSION['nome'] = 0;
 $codtipousuario = 0;
-$codaluno = 0;
+$codusuario = 0;
 
 if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 	require_once 'conectdb.php';
 	if (! $db) {
 		echo "não abriu bd";
 	}
-	$cmd = "SELECT codaluno, codtipousuario, nome, alterasenha " .
-			"FROM aluno " .
+	$cmd = "SELECT codusuario, codtipousuario, nome, alterasenha " .
+			"FROM usuario " .
 			"WHERE email = :email " .
 			"AND senha = :senha";
 	$tblLogin = $db->prepare($cmd);
@@ -21,7 +21,7 @@ if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
 	$tblLogin->bindParam(':senha', $senha);
 	$tblLogin->execute();
 	if ($row = $tblLogin->fetch()) {
-		$_SESSION['codaluno'] = $row['codaluno'];
+		$_SESSION['codusuario'] = $row['codusuario'];
 		$_SESSION['codtipousuario'] = $row['codtipousuario'];
 		$_SESSION['nome'] = $row['nome'];
 		$site = $_SERVER['HTTP_REFERER'];
