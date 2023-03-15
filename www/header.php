@@ -54,6 +54,12 @@ if ($showHeader) {
 		#lista img {
 			max-width: 100%;
 		}
+		h2{
+			font-size: 1rem;
+		}
+		h4{
+			font-size: 1rem;
+		}
 		@media print {
 			.noPrint {
 				display:none;
