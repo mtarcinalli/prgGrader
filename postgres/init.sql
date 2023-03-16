@@ -21,8 +21,8 @@ CREATE TABLE curso (
         observacao    TEXT
 );
 
-CREATE TABLE plugin (
-        codplugin      SERIAL PRIMARY KEY,
+CREATE TABLE corretor (
+        codcorretor      SERIAL PRIMARY KEY,
         descricao     VARCHAR(200),
         retorno       BOOLEAN,
         observacao    TEXT
@@ -30,12 +30,12 @@ CREATE TABLE plugin (
 
 CREATE TABLE tarefa (
         codtarefa     SERIAL PRIMARY KEY,
-        codplugin     INT NOT NULL,
+        codcorretor   INT NOT NULL,
         descricao     VARCHAR(200),
         sigla VARCHAR(10),
         instrucoes    TEXT,
         observacao    TEXT,
-		FOREIGN KEY (codplugin) REFERENCES plugin (codplugin)
+	FOREIGN KEY (codcorretor) REFERENCES corretor(codcorretor)
 );
 
 CREATE TABLE turma (
@@ -85,7 +85,7 @@ CREATE TABLE acessocurso (
         codacessocurso SERIAL PRIMARY KEY,
         codcurso INTEGER NOT NULL,
         codusuario INTEGER NOT NULL,
-        FOREIGN KEY(codcurso) REFERENCES curso(codcurso),
+        FOREIGN KEY(codcurso) REFERENCES curso(codcurso) ON DELETE CASCADE,
         FOREIGN KEY(codusuario) REFERENCES usuario(codusuario),
         UNIQUE(codcurso,codusuario)
 );
@@ -95,3 +95,5 @@ INSERT INTO tipousuario (descricao) VALUES ('Professor');
 INSERT INTO tipousuario (descricao) VALUES ('Assistente');
 INSERT INTO tipousuario (descricao) VALUES ('Aluno');
 INSERT INTO usuario (codtipousuario, nome, email, senha, alterasenha) VALUES (1, 'admin', 'admin', '21232f297a57a5a743894a0e4a801fc3', true);
+INSERT INTO corretor (descricao) VALUES ('C++: cxxtest');
+INSERT INTO corretor (descricao) VALUES ('Java: JUnit');
