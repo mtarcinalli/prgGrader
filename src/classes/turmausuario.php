@@ -4,10 +4,10 @@ class Turmausuario extends obj2db {
 	private $turma;
 	private $usuario;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->turma = new Turma();
 		$this->usuario = new Usuario();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodTurmaUsuario() {

@@ -6,9 +6,9 @@ class Turma extends obj2db {
 	private $sigla;
 	private $observacao;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->curso = new Curso();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodTurma() {

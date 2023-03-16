@@ -7,10 +7,10 @@ class TarefaTurma extends obj2db {
 	private $dataFim;
 	private $observacao;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->Tarefa = new Tarefa();
 		$this->Turma = new Turma();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodTarefaTurma() {

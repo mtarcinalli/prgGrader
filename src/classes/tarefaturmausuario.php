@@ -10,10 +10,10 @@ class TarefaTurmaUsuario extends obj2db {
 	private $notafinal;
 	private $observacao;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->TarefaTurma = new TarefaTurma();
 		$this->Usuario = new Usuario();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodTarefaTurmaUsuario() {

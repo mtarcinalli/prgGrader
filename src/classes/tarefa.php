@@ -7,9 +7,9 @@ class Tarefa extends obj2db {
 	private $instrucoes;
 	private $observacao;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->plugin = new Plugin();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodTarefa() {

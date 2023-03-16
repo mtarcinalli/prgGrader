@@ -8,9 +8,9 @@ class Usuario extends obj2db {
 	private $alterasenha;
 	private $observacao;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->TipoUsuario = new Tipousuario();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodUsuario() {

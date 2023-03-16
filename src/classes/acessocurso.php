@@ -4,10 +4,10 @@ class AcessoCurso extends obj2db {
 	private $curso;
 	private $usuario;
 
-	function __construct() {
+	function __construct($cod=0) {
 		$this->curso = new Curso();
 		$this->usuario = new Usuario();
-		parent::__construct();
+		parent::__construct($cod);
 	}
 
 	function getCodAcessoCurso() {
