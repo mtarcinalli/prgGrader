@@ -17,18 +17,18 @@ class Formulario {
 	function salvar() {
 		$db = $this->db;
 		if ($_REQUEST['cp'] != "") {
-			$cmd = "UPDATE plugin SET " .
+			$cmd = "UPDATE corretor SET " .
 					"descricao = :descricao, " .
 					"retorno = :retorno, " .
 					"observacao = :observacao " .
-					"WHERE codplugin = :cp";
+					"WHERE codcorretor = :cp";
 			$stmt = $db->prepare($cmd);
 			$stmt->bindValue(':cp', $_REQUEST['cp'], PDO::PARAM_INT);
 			$acao = "alterar";
 			$cp = $_REQUEST['cp'];
 			$_REQUEST['cod'] = "";
 		} else {
-			$cmd = "INSERT INTO plugin " .
+			$cmd = "INSERT INTO corretor " .
 				"(descricao, retorno, observacao) " .
 				"VALUES " .
 				"(:descricao, :retorno, :observacao) ";
@@ -42,16 +42,16 @@ class Formulario {
 		$ok = $stmt->execute();
 		# creating directory		
 		if (! isset($cp) && $ok) {
-			$cmd = "SELECT max(codplugin) AS cp FROM plugin";
+			$cmd = "SELECT max(codcorretor) AS cp FROM corretor";
 			$tbl = $db->prepare($cmd);
 			$tbl->execute();
 			$row = $tbl->fetch();
 			$cp = $row["cp"];
-			$uploaddir = "../uploads/CORRETORES/PLUGIN$cp/corretor/";
+			$uploaddir = "../uploads/CORRETORES/CORRETOR$cp/corretor/";
 			$cmd = "mkdir -p $uploaddir";
 			$output = shell_exec($cmd);
 		}
-		$uploaddir = "../uploads/CORRETORES/PLUGIN$cp/";
+		$uploaddir = "../uploads/CORRETORES/CORRETOR$cp/";
 		
 		# uploading
 		if ($_FILES['arquivo']['tmp_name']) {
@@ -84,9 +84,9 @@ class Formulario {
 	
 	function excluir() {
 		$db = $this->db;
-		$cmd = "DELETE FROM plugin where codplugin = :codplugin";
+		$cmd = "DELETE FROM corretor where codcorretor = :codcorretor";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codplugin', $_REQUEST['cod'], PDO::PARAM_INT);
+		$stmt->bindValue(':codcorretor', $_REQUEST['cod'], PDO::PARAM_INT);
 		try {
 			$ok = $stmt->execute();
 		} catch (Exception $e) {
@@ -105,7 +105,7 @@ class Formulario {
 		
 	function listar() {
 		$db = $this->db;
-		$cmd = "SELECT * FROM plugin p ORDER BY descricao desc";
+		$cmd = "SELECT * FROM corretor p ORDER BY descricao desc";
 		$tbl = $db->prepare($cmd);
 		$tbl->execute();
 		echo "<table class=\"table table-striped\">" .
@@ -117,8 +117,8 @@ class Formulario {
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codplugin]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codplugin]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codcorretor]'\">X<span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codcorretor]'\">U<span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
 			echo "<td>$row[descricao]</td>" .
 				"<td>$row[observacao]</td>";
 			echo "</tr>";
@@ -130,9 +130,9 @@ class Formulario {
 		$db = $this->db;
 		$retorno = 0;
 		if ($this->modo =="alterar") {
-			$cmd = "SELECT * FROM plugin WHERE codplugin = :codplugin";
+			$cmd = "SELECT * FROM corretor WHERE codcorretor = :codcorretor";
 			$tbl = $db->prepare($cmd);
-			$tbl->bindValue(':codplugin', $_REQUEST['cod'], PDO::PARAM_INT);
+			$tbl->bindValue(':codcorretor', $_REQUEST['cod'], PDO::PARAM_INT);
 			$tbl->execute();
 			$rowTbl = $tbl->fetch();
 			$retorno = $rowTbl['retorno'];
