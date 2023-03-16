@@ -1,12 +1,12 @@
 <?php
 class AcessoCurso extends obj2db {			
 	private $codAcessoCurso;
-	private $Curso;
-	private $Usuario;
+	private $curso;
+	private $usuario;
 
 	function __construct() {
-		$this->Curso = new Curso();
-		$this->Usuario = new Usuario();
+		$this->curso = new Curso();
+		$this->usuario = new Usuario();
 		parent::__construct();
 	}
 
@@ -19,34 +19,34 @@ class AcessoCurso extends obj2db {
 	}			
 
 	function getCurso() {
-		return $this->Curso;
+		return $this->curso;
 	}			
 
 	function setCurso($valor) {
 		if (is_numeric($valor)) {
 			$obj = new Curso();
 			$obj->carregar($valor);
-			$this->Curso = $obj;
+			$this->curso = $obj;
 		} elseif (! is_object($valor) || $valor == "") {
 			throw new Exception("Curso obrigat&oacute;rio(a)!");
 		} else {
-			$this->Curso = $valor;
+			$this->curso = $valor;
 		}
 	}			
 
 	function getUsuario() {
-		return $this->Usuario;
+		return $this->usuario;
 	}			
 
 	function setUsuario($valor) {
 		if (is_numeric($valor)) {
 			$obj = new Usuario();
 			$obj->carregar($valor);
-			$this->Usuario = $obj;
+			$this->usuario = $obj;
 		} elseif (! is_object($valor) || $valor == "") {
 			throw new Exception("Usuario obrigat&oacute;rio(a)!");
 		} else {
-			$this->Usuario = $valor;
+			$this->usuario = $valor;
 		}
 	}			
 
