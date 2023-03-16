@@ -7,7 +7,7 @@ $codtipousuario = 0;
 $codusuario = 0;
 
 if (@$_REQUEST['usuario'] && @$_REQUEST['senha']) {
-	require_once 'conectdb.php';
+	require_once '../src/conectdb.php';
 	if (! $db) {
 		echo "não abriu bd";
 	}
