@@ -12,7 +12,7 @@ require_once '../src/classes/usuario.php';
 
 use PHPUnit\Framework\TestCase;
 
-final class prgGraderTests extends TestCase
+final class cursoTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -119,42 +119,6 @@ final class prgGraderTests extends TestCase
 
     }
 
-    /**
-    * @covers \Turma
-    */
-    public function testTurma(): void
-    {
-        global $db;
-        $codProprietario = 1;
-
-        $curso = new Curso();
-        $curso->setDescricao("Curso 01");
-        $curso->setSigla("CT 01");
-        $curso->setObservacao("Obs");
-        $curso->proprietario($codProprietario);
-        $curso->salvar();
-        $codcurso = $curso->getCodCurso();
-
-        $turma = new Turma();
-        $turma->setCurso($curso);
-        $turma->setDescricao("Turma 01");
-        $turma->setSigla("T01");
-        $turma->setObservacao("Obs 01");
-        $turma->salvar();
-
-        $codturma = $turma->getCodTurma();
-		$cmd = "SELECT * FROM turma WHERE codturma = :codturma";
-		$tbl = $db->prepare($cmd);
-        $tbl->bindValue(':codturma', $codturma, PDO::PARAM_INT);
-		$tbl->execute();
-		$row = $tbl->fetch();
-        $this->assertSame((int)$codcurso, (int)$row['codcurso']);
-        $this->assertSame($turma->getDescricao(), $row['descricao']);
-        $this->assertSame($turma->getSigla(), $row['sigla']);
-        $this->assertSame($turma->getObservacao(), $row['observacao']);
-
-
-    }
 
 
 }
