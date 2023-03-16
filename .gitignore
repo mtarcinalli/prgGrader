@@ -5,5 +5,5 @@
 *.swp
 testes
 db/data/
-tests/.phpunit.result.cache
-tests/.phpunit.cache/test-results
+tests/bin/.phpunit.result.cache
+tests/bin/.phpunit.cache/test-results
