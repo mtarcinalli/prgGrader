@@ -1,5 +1,5 @@
 <?php
-class Tipousuario extends obj2db {			
+class TipoUsuario extends obj2db {
 	private $codTipoUsuario;
 	private $descricao;
 
