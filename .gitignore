@@ -7,3 +7,6 @@ testes
 db/data/
 tests/bin/.phpunit.result.cache
 tests/bin/.phpunit.cache/test-results
+uploads/CURSO*/
+uploads/alunos.csv
+uploads/TAREFAS/
