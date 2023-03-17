@@ -141,16 +141,17 @@ class Formulario {
 				"<th>Observações</th>" .
 				"</tr>";
 
+
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
-			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-send\"></a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codtarefa]'\"><i class=\"bi bi-trash\"></i></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefa]'\"><i class=\"bi bi-pencil\"></i></span></a> </td>";
+			echo "<td><a href='cadtarefaturma.php?codtarefa=$row[codtarefa]'\"><i class=\"bi bi-send\"></i></a> </td>";
 			echo "<td>";
-			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/solution.zip") ? "<a href='?modo=downloadSolucao&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-exclamation-sign\"></a>" : "");
+			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/solution.zip") ? "<a href='?modo=downloadSolucao&amp;cod=$row[codtarefa]'\"><i class=\"bi bi-lightbulb\"></i></a>" : "");
 			echo "</td>";
 			echo "<td>";
-			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/model.zip") ? "<a href='?modo=downloadModelo&amp;cod=$row[codtarefa]'\"><span class=\"glyphicon glyphicon-file\"></a>" : "");
+			echo (file_exists("../uploads/TAREFAS/T$row[codtarefa]/model.zip") ? "<a href='?modo=downloadModelo&amp;cod=$row[codtarefa]'\"><i class=\"bi bi-file-arrow-down\"></i></a>" : "");
 			echo "</td>";
 			echo "<td>$row[descricao]</td>";
 			echo "<td>$row[sigla]</td>";
@@ -160,11 +161,11 @@ class Formulario {
 		}
 		echo "</table>";
 		echo "<h4>Legenda:</h4>";
-		echo "<span class=\"glyphicon glyphicon-trash\"></span> Excluir<br>";
-		echo "<span class=\"glyphicon glyphicon-pencil\"></span> Alterar<br>";
-		echo "<span class=\"glyphicon glyphicon-send\"></span> Atribuir para alunos<br>";
-		echo "<span class=\"glyphicon glyphicon-exclamation-sign\"></span> Download arquivo de solução<br>";
-		echo "<span class=\"glyphicon glyphicon-file\"></span> Download arquivo de modelo<br>";
+		echo "<i class=\"bi bi-trash\"></i> Excluir<br>";
+		echo "<i class=\"bi bi-pencil\"></i> Alterar<br>";
+		echo "<i class=\"bi bi-send\"></i> Atribuir para alunos<br>";
+		echo "<i class=\"bi bi-lightbulb\"></i> Download arquivo de solução<br>";
+		echo "<i class=\"bi bi-file-arrow-down\"></i> Download arquivo de modelo<br>";
 	}
 
 	function formulario() {
