@@ -17,13 +17,13 @@ class Formulario {
 		$this->db = $db;
 		$this->acao();
 	}
-	
+
 	function salvar() {
 		$db = $this->db;
 		$cp = 0;
 		if ($_REQUEST['cp'] != "") {
 			$cmd = "UPDATE tarefa SET " .
-					"codplugin = :codplugin, " .
+					"codcorretor = :codcorretor, " .
 					"descricao = :descricao, " .
 					"sigla = :sigla, " .
 					"instrucoes = :instrucoes, " .
@@ -36,13 +36,13 @@ class Formulario {
 			$cp = $_REQUEST['cp'];
 		} else {
 			$cmd = "INSERT INTO tarefa " .
-				"(codplugin, descricao, sigla, instrucoes, observacao) " .
+				"(codcorretor, descricao, sigla, instrucoes, observacao) " .
 				"VALUES " .
-				"(:codplugin, :descricao, :sigla, :instrucoes, :observacao) ";
+				"(:codcorretor, :descricao, :sigla, :instrucoes, :observacao) ";
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
-		$stmt->bindValue(':codplugin', $_REQUEST['codplugin'], PDO::PARAM_INT);
+		$stmt->bindValue(':codcorretor', $_REQUEST['codcorretor'], PDO::PARAM_INT);
 		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
 		$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
@@ -97,7 +97,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
 	}
-	
+
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM tarefa where codtarefa = :codtarefa";
@@ -118,7 +118,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
 		}
 	}
-	
+
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT " .
@@ -165,7 +165,7 @@ class Formulario {
 		echo "<span class=\"glyphicon glyphicon-send\"></span> Atribuir para alunos<br>";
 		echo "<span class=\"glyphicon glyphicon-exclamation-sign\"></span> Download arquivo de solução<br>";
 		echo "<span class=\"glyphicon glyphicon-file\"></span> Download arquivo de modelo<br>";
-	}	
+	}
 
 	function formulario() {
 		$db = $this->db;
@@ -185,17 +185,17 @@ class Formulario {
 				<input type="text" name="sigla" id="sigla" value="<?php echo (isset($rowTbl) ? $rowTbl["sigla"] : ""); ?>" class="form-control">
 				<label for="instrucoes">Instruções:</label>
 				<textarea name="instrucoes" id="instrucoes" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["instrucoes"]: ""); ?></textarea>
-				<label for="codplugin">Corretor:</label>
-				<select name="codplugin" id="codplugin" class="form-control">
+				<label for="codcorretor">Corretor:</label>
+				<select name="codcorretor" id="codcorretor" class="form-control">
 					<option>[Corretor]</option>
 					<?php
-					$cmd = "SELECT codplugin, descricao FROM plugin ORDER BY descricao";
+					$cmd = "SELECT codcorretor, descricao FROM corretor ORDER BY descricao";
 					$tbl = $db->prepare($cmd);
 					$tbl->execute();
 					while ($row = $tbl->fetch()){
-						echo "<option value='$row[codplugin]' ";
+						echo "<option value='$row[codcorretor]' ";
 						if (isset($rowTbl))
-							if ($row['codplugin'] == $rowTbl['codplugin'])
+							if ($row['codcorretor'] == $rowTbl['codcorretor'])
 								echo " selected";
 						echo ">$row[descricao]</option>";
 					}
@@ -229,7 +229,7 @@ class Formulario {
 			$nomeArquivo = "../uploads/TAREFAS/T$this->cp/model.zip";
 		}
 		if (! file_exists($nomeArquivo)) {
-			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao baixar arquivo! [inexistente]</div>";	
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao baixar arquivo! [inexistente]</div>";
 			return false;
 		}
 		header('Content-Description: File Transfer');
@@ -243,7 +243,7 @@ class Formulario {
 		readfile($nomeArquivo);
 		die();
 	}
-	
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
