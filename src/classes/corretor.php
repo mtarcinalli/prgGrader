@@ -1,16 +1,16 @@
 <?php
-class Plugin extends obj2db {			
-	private $codPlugin;
+class Corretor extends obj2db {			
+	private $codCorretor;
 	private $descricao;
 	private $retorno;
 	private $observacao;
 
-	function getCodPlugin() {
-		return $this->codPlugin;
+	function getCodCorretor() {
+		return $this->codCorretor;
 	}			
 
-	function setCodPlugin($valor) {
-		$this->codPlugin = $valor;
+	function setCodCorretor($valor) {
+		$this->codCorretor = $valor;
 	}			
 
 	function getDescricao() {

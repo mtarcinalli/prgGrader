@@ -1,14 +1,14 @@
 <?php
 class Tarefa extends obj2db {			
 	private $codTarefa;
-	private $plugin;
+	private $corretor;
 	private $descricao;
 	private $sigla;
 	private $instrucoes;
 	private $observacao;
 
 	function __construct($cod=0) {
-		$this->plugin = new Plugin();
+		$this->corretor = new Corretor();
 		parent::__construct($cod);
 	}
 
@@ -20,19 +20,19 @@ class Tarefa extends obj2db {
 		$this->codTarefa = $valor;
 	}			
 
-	function getPlugin() {
-		return $this->plugin;
+	function getCorretor() {
+		return $this->corretor;
 	}			
 
-	function setPlugin($valor) {
+	function setCorretor($valor) {
 		if (is_numeric($valor)) {
-			$obj = new Plugin();
+			$obj = new Corretor();
 			$obj->carregar($valor);
-			$this->plugin = $obj;
+			$this->corretor = $obj;
 		} elseif (! is_object($valor) || $valor == "") {
-			throw new Exception("Plugin obrigat&oacute;rio(a)!");
+			throw new Exception("Corretor obrigat&oacute;rio(a)!");
 		} else {
-			$this->plugin = $valor;
+			$this->corretor = $valor;
 		}
 	}			
 
