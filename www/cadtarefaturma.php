@@ -59,27 +59,27 @@ class Form {
 			$row = $tbl->fetch();
 			$codcurso = $row[0];
 
-			$cmd = "SELECT codaluno FROM turmaaluno WHERE codturma = :codturma";
+			$cmd = "SELECT codusuario FROM turmausuario WHERE codturma = :codturma";
 			$tblAlunos = $db->prepare($cmd);
 			$tblAlunos->bindValue(':codturma', $_REQUEST['codturma']);
 			$tblAlunos->execute();
 			while ($rowAluno = $tblAlunos->fetch()) {
-				$cmd = "INSERT INTO tarefaturmaaluno " .
-						"(codtarefaturma, codaluno) " .
+				$cmd = "INSERT INTO tarefaturmausuario " .
+						"(codtarefaturma, codusuario) " .
 						"VALUES " .
-						"(:codtarefaturma, :codaluno)";
+						"(:codtarefaturma, :codusuario)";
 				$stmt = $db->prepare($cmd);
 				$stmt->bindValue(':codtarefaturma', $codtarefaturma, PDO::PARAM_INT);
-				$stmt->bindValue(':codaluno', $rowAluno['codaluno'], PDO::PARAM_INT);
+				$stmt->bindValue(':codusuario', $rowAluno['codusuario'], PDO::PARAM_INT);
 				$ok = $stmt->execute();
 
-				$cmd = "SELECT max(codtarefaturmaaluno) FROM tarefaturmaaluno";
+				$cmd = "SELECT max(codtarefaturmausuario) FROM tarefaturmausuario";
 				$tbl = $db->prepare($cmd);
 				$tbl->execute();
 				$row = $tbl->fetch();
-				$codtarefaturmaaluno = $row[0];
+				$codtarefaturmausuario = $row[0];
 
-				$cmd = "mkdir -p ../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmaaluno";
+				$cmd = "mkdir -p ../uploads/CURSO$codcurso/TURMA$_REQUEST[codturma]/TTURMA$codtarefaturma/TTALUNO$codtarefaturmausuario";
 				$output = shell_exec($cmd);
 			}
 		}
@@ -92,13 +92,13 @@ class Form {
 
 	function excluir() {
 		$db = $this->db;
-		$cmd = "SELECT count(*) FROM tarefaturmaaluno WHERE codtarefaturma = :codtarefaturma AND entregas > 0";
+		$cmd = "SELECT count(*) FROM tarefaturmausuario WHERE codtarefaturma = :codtarefaturma AND entregas > 0";
 		$stmt = $db->prepare($cmd);
 		$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
 		$stmt->execute();
 		$qtdRegs = $stmt->fetchColumn();
 		if ($qtdRegs == 0) {
-			$cmd = "DELETE FROM tarefaturmaaluno WHERE codtarefaturma = :codtarefaturma";
+			$cmd = "DELETE FROM tarefaturmausuario WHERE codtarefaturma = :codtarefaturma";
 			$stmt = $db->prepare($cmd);
 			$stmt->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
 			try {
@@ -133,9 +133,9 @@ class Form {
 
 	function excluirAluno() {
 		$db = $this->db;
-		$cmd = "DELETE FROM tarefaturmaaluno where codtarefaturmaaluno = :codtarefaturmaaluno";
+		$cmd = "DELETE FROM tarefaturmausuario where codtarefaturmausuario = :codtarefaturmausuario";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codtarefaturmaaluno', $_REQUEST['codtarefaturmaaluno'], PDO::PARAM_INT);
+		$stmt->bindValue(':codtarefaturmausuario', $_REQUEST['codtarefaturmausuario'], PDO::PARAM_INT);
 		try {
 			$ok = $stmt->execute();
 		} catch (Exception $e) {
@@ -155,10 +155,10 @@ class Form {
 			if (substr($key, 0 ,3) == "nf-") {
 				if ($value != "") {
 					$cod = explode("-", $key);
-					$cmd = "UPDATE tarefaturmaaluno SET notafinal = :notafinal where codtarefaturmaaluno = :codtarefaturmaaluno";
+					$cmd = "UPDATE tarefaturmausuario SET notafinal = :notafinal where codtarefaturmausuario = :codtarefaturmausuario";
 					$stmt = $db->prepare($cmd);
 					$stmt->bindValue(':notafinal', $value, PDO::PARAM_INT);
-					$stmt->bindValue(':codtarefaturmaaluno', $cod[1], PDO::PARAM_INT);
+					$stmt->bindValue(':codtarefaturmausuario', $cod[1], PDO::PARAM_INT);
 					$ok1 = $stmt->execute();
 					if (! $ok1) {
 						$ok = false;
@@ -314,15 +314,15 @@ class Form {
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
 						$cmd = "SELECT " .
-								"tta.codtarefaturmaaluno , " .
+								"tta.codtarefaturmausuario , " .
 								"a.nome , " .
 								"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega , " .
 								"tta.entregas , " .
 								"tta.resultados , " .
 								"tta.notafinal, " .
 								"tta.nota " .
-								"FROM tarefaturmaaluno tta " .
-								"INNER JOIN aluno a ON tta.codaluno = a.codaluno " .
+								"FROM tarefaturmausuario tta " .
+								"INNER JOIN usuario a ON tta.codusuario = a.codusuario " .
 								"WHERE codtarefaturma =  :codtarefaturma " .
 								"ORDER BY nome ASC";
 						$tblAlunos = $db->prepare($cmd);
@@ -343,22 +343,22 @@ class Form {
 							echo "<tr>" .
 									"<td>" .
 									"<a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?" .
-									"modo=excluirAluno&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]&amp;codtarefaturmaaluno=$rowAluno[codtarefaturmaaluno]'\">" .
+									"modo=excluirAluno&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]&amp;codtarefaturmausuario=$rowAluno[codtarefaturmausuario]'\">" .
 									"<span class=\"glyphicon glyphicon-trash\"></span></a> </td>" .
 									"<td>" .
-									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmaaluno]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
-									"$rowAluno[codtarefaturmaaluno]" .
+									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmausuario]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
+									"$rowAluno[codtarefaturmausuario]" .
 									"</a>" .
 									"</td>" .
 									"<td>$rowAluno[nome]</td>" .
 									"<td>$rowAluno[dataentrega]</td>" .
 									"<td>$rowAluno[entregas]</td>" .
 									"<td>$rowAluno[nota]</td>" .
-									"<td><input type=\"text\" id=\"nf-$rowAluno[codtarefaturmaaluno]\" name=\"nf-$rowAluno[codtarefaturmaaluno]\" value=\"$rowAluno[notafinal]\"  class=\"form-control\"></td>" .
+									"<td><input type=\"text\" id=\"nf-$rowAluno[codtarefaturmausuario]\" name=\"nf-$rowAluno[codtarefaturmausuario]\" value=\"$rowAluno[notafinal]\"  class=\"form-control\"></td>" .
 									"</tr>";
 							if (false && $rowAluno["resultados"]) {
 								echo "<tr><td colspan='5'><pre>";
-								echo "Diretório: TURMA$row[codturma]/TTURMA$row[codtarefaturma]/TTALUNO$rowAluno[codtarefaturmaaluno]\n";
+								echo "Diretório: TURMA$row[codturma]/TTURMA$row[codtarefaturma]/TTALUNO$rowAluno[codtarefaturmausuario]\n";
 								echo $rowAluno["resultados"];
 								echo "</pre></td></tr>";
 							}
