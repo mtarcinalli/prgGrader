@@ -1,4 +1,4 @@
-<?php 
+<?php
 #declare(strict_types=1);
 require_once '../src/modules/obj2db/src/obj2db.php';
 require_once '../src/conectdb.php';
@@ -18,6 +18,18 @@ final class cursoTest extends TestCase
     {
         parent::setUp();
         global $db;
+        $cmd = "DELETE FROM tarefaturmausuario";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
+        $cmd = "DELETE FROM turmausuario";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
+        $cmd = "DELETE FROM tarefaturma";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
 		$cmd = "DELETE FROM turma";
 		$tbl = $db->prepare($cmd);
 		$tbl->execute();

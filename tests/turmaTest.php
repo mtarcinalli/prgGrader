@@ -1,4 +1,4 @@
-<?php 
+<?php
 #declare(strict_types=1);
 require_once '../src/modules/obj2db/src/obj2db.php';
 require_once '../src/conectdb.php';
@@ -18,7 +18,19 @@ final class turmaTest extends TestCase
     {
         parent::setUp();
         global $db;
-		$cmd = "DELETE FROM turma";
+        $cmd = "DELETE FROM tarefaturmausuario";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
+        $cmd = "DELETE FROM turmausuario";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
+        $cmd = "DELETE FROM tarefaturma";
+		$tbl = $db->prepare($cmd);
+		$tbl->execute();
+
+        $cmd = "DELETE FROM turma";
 		$tbl = $db->prepare($cmd);
 		$tbl->execute();
 
@@ -60,7 +72,7 @@ final class turmaTest extends TestCase
         $tbl->bindValue(':codturma', $codturma, PDO::PARAM_INT);
 		$tbl->execute();
 		$row = $tbl->fetch();
-        $this->assertSame((int)$codcurso, (int)$row['codcurso']);
+        $this->assertSame($codcurso, $row['codcurso']);
         $this->assertSame($turma->getDescricao(), $row['descricao']);
         $this->assertSame($turma->getSigla(), $row['sigla']);
         $this->assertSame($turma->getObservacao(), $row['observacao']);
