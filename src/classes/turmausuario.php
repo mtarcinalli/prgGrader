@@ -1,5 +1,5 @@
 <?php
-class Turmausuario extends obj2db {			
+class TurmaUsuario extends obj2db {
 	private $codTurmaUsuario;
 	private $turma;
 	private $usuario;
