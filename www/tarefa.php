@@ -5,14 +5,14 @@ if (! $db) {
 	echo "não abriu bd";
 }
 
-$codtarefaturmaaluno = (isset($_REQUEST['codtarefaturmaaluno']) && is_numeric($_REQUEST['codtarefaturmaaluno']) ? $_REQUEST['codtarefaturmaaluno'] : null);
+$codtarefaturmausuario = (isset($_REQUEST['codtarefaturmausuario']) && is_numeric($_REQUEST['codtarefaturmausuario']) ? $_REQUEST['codtarefaturmausuario'] : null);
 $modo = @$_REQUEST['modo'];
 
-function formTarefa($codtarefaturmaaluno, $codaluno) {
+function formTarefa($codtarefaturmausuario, $codusuario) {
 	?>
 	<form action="tarefa.php" method="post" enctype="multipart/form-data" class="form-inline">
 		<input type="hidden" name="modo" value="upload">
-		<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
+		<input type="hidden" name="codtarefaturmausuario" value="<?php echo $codtarefaturmausuario; ?>">
 		<label for="arquivo">Selecione o arquivo a ser enviado:</label>
 		<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
 		<button type="submit" class="btn btn-primary">Enviar arquivo</button>
@@ -20,20 +20,20 @@ function formTarefa($codtarefaturmaaluno, $codaluno) {
 	<?php
 }
 
-function downloadModelo($db, $codtarefaturmaaluno, $codaluno) {
+function downloadModelo($db, $codtarefaturmausuario, $codusuario) {
 	$cmd = "SELECT " .
 		"tt.codtarefa " .
 		"FROM " .
-		"tarefaturmaaluno tta " .
+		"tarefaturmausuario tta " .
 		"INNER JOIN tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
-		"WHERE codtarefaturmaaluno = $codtarefaturmaaluno AND tta.codaluno = $codaluno";
-	$tblTarefaTurmaAluno = $db->prepare($cmd);
-	$tblTarefaTurmaAluno->execute();
-	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
-	if (! $rowTarefaTurmaAluno) {
+		"WHERE codtarefaturmausuario = $codtarefaturmausuario AND tta.codusuario = $codusuario";
+	$tblTarefaTurmaUsuario = $db->prepare($cmd);
+	$tblTarefaTurmaUsuario->execute();
+	$rowTarefaTurmaUsuario = $tblTarefaTurmaUsuario->fetch();
+	if (! $rowTarefaTurmaUsuario) {
 		return;
 	}
-	$nomeArquivo = "../uploads/TAREFAS/T$rowTarefaTurmaAluno[codtarefa]/model.zip";
+	$nomeArquivo = "../uploads/TAREFAS/T$rowTarefaTurmaUsuario[codtarefa]/model.zip";
 	if (! file_exists($nomeArquivo)) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao baixar arquivo! [inexistente]</div>";
 		return false;
@@ -50,29 +50,29 @@ function downloadModelo($db, $codtarefaturmaaluno, $codaluno) {
 	die();
 }
 
-function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
+function enviaTarefa($db, $codtarefaturmausuario, $codusuario) {
 	$cmd = "select " .
-		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
+		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmausuario) AS diretorio , " .
 		"tt.codtarefa , " .
 		"t.sigla AS tarefasigla, ".
 		"t.codplugin, " .
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
 		"FROM " .
-		"tarefaturmaaluno tta " .
+		"tarefaturmausuario tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
-		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
+		"INNER JOIN usuario al ON al.codusuario = tta.codusuario " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
-		"WHERE codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
-	$tblTarefaTurmaAluno = $db->prepare($cmd);
-	$tblTarefaTurmaAluno->execute();
-	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
-	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
+		"WHERE codtarefaturmausuario = $codtarefaturmausuario and tta.codusuario = $codusuario";
+	$tblTarefaTurmaUsuario = $db->prepare($cmd);
+	$tblTarefaTurmaUsuario->execute();
+	$rowTarefaTurmaUsuario = $tblTarefaTurmaUsuario->fetch();
+	$uploaddir = $rowTarefaTurmaUsuario['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
-	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
-	$codplugin = $rowTarefaTurmaAluno['codplugin'];
+	$codtarefa = $rowTarefaTurmaUsuario['codtarefa'];
+	$codplugin = $rowTarefaTurmaUsuario['codplugin'];
 	$files = glob($uploaddir . "*");
 	foreach($files as $file){
 		if(is_file($file)) {
@@ -91,21 +91,21 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"bash ./grader.sh";
 	$output = trim(shell_exec($cmd));
 	$nota = intval(trim(substr($output, strrpos($output, "\n"), -1)));
-	$comando = "UPDATE tarefaturmaaluno SET " .
+	$comando = "UPDATE tarefaturmausuario SET " .
 			"resultados = :resultados , " .
 			"entregas = entregas + 1 , " .
 			"dataentrega = date('now'), " .
 			"nota = :nota " .
-			"WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
+			"WHERE codtarefaturmausuario = :codtarefaturmausuario";
 	$query = $db->prepare($comando);
 	$query->bindValue(':resultados', $output, PDO::PARAM_STR);
 	$query->bindValue(':nota', $nota, PDO::PARAM_INT);
-	$query->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
+	$query->bindValue(':codtarefaturmausuario', $codtarefaturmausuario, PDO::PARAM_INT);
 	if (! $query) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao salvar informações tarefa [001]!</div>";
 		return;
 	}
-	$ok = $query->execute();	
+	$ok = $query->execute();
 	if (! $ok) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao salvar informações tarefa! [002]</div>";
 		return;
@@ -114,9 +114,9 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	}
 }
 
-function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
+function detalheTarefa($db, $codtarefaturmausuario, $codusuario) {
 	$cmd = "select " .
-		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmaaluno) AS diretorio , " .
+		"('../uploads/CURSO' || tu.codcurso || '/TURMA' || tu.codturma || '/TTURMA' ||  tta.codtarefaturma || '/TTALUNO' || tta.codtarefaturmausuario) AS diretorio , " .
 		"t.sigla AS tarefasigla, ".
 		"tt.codtarefa , " .
 		"tt.codturma , " .
@@ -130,18 +130,18 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"p.retorno , " .
 		"tta.* " .
 		"FROM " .
-		"tarefaturmaaluno tta " .
+		"tarefaturmausuario tta " .
 		"INNER JOIN tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
 		"INNER JOIN plugin p ON p.codplugin = t.codplugin " .
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
-		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
+		"INNER JOIN usuario al ON al.codusuario = tta.codusuario " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
-		"where codtarefaturmaaluno = $codtarefaturmaaluno and tta.codaluno = $codaluno";
-	$tblTarefaTurmaAluno = $db->prepare($cmd);
-	$tblTarefaTurmaAluno->execute();
-	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
-	if (! $rowTarefaTurmaAluno)
+		"where codtarefaturmausuario = $codtarefaturmausuario and tta.codusuario = $codusuario";
+	$tblTarefaTurmaUsuario = $db->prepare($cmd);
+	$tblTarefaTurmaUsuario->execute();
+	$rowTarefaTurmaUsuario = $tblTarefaTurmaUsuario->fetch();
+	if (! $rowTarefaTurmaUsuario)
 		return;
 	?>
 	<div class="row">
@@ -150,50 +150,50 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	  </div>
 	<?php
 	echo "<table class='table'><tr>" .
-			"<td><b>CURSO:</b> $rowTarefaTurmaAluno[curso]</td>".
-			"<td><b>TURMA:</b> $rowTarefaTurmaAluno[turma]</td>".
+			"<td><b>CURSO:</b> $rowTarefaTurmaUsuario[curso]</td>".
+			"<td><b>TURMA:</b> $rowTarefaTurmaUsuario[turma]</td>".
 			"</tr><tr>" .
-			"<td><b>TAREFA:</b> $rowTarefaTurmaAluno[tarefasigla]</td>" .
-			"<td><b>PRAZO DE: </b> $rowTarefaTurmaAluno[datainicio] ".
-			"<b>até</b> $rowTarefaTurmaAluno[datafim]</td>".
+			"<td><b>TAREFA:</b> $rowTarefaTurmaUsuario[tarefasigla]</td>" .
+			"<td><b>PRAZO DE: </b> $rowTarefaTurmaUsuario[datainicio] ".
+			"<b>até</b> $rowTarefaTurmaUsuario[datafim]</td>".
 			"</tr><tr>" .
 			"<td colspan='2'>" .
 			"<b>Instruções:</b><br>" .
-			nl2br($rowTarefaTurmaAluno['instrucoes']) .
+			nl2br($rowTarefaTurmaUsuario['instrucoes']) .
 			"</td></tr>";
 
-	if (file_exists("../uploads/TAREFAS/T$rowTarefaTurmaAluno[codtarefa]/model.zip")) {
+	if (file_exists("../uploads/TAREFAS/T$rowTarefaTurmaUsuario[codtarefa]/model.zip")) {
 		echo "<tr><td colspan='2'><b>Modelo:</b> ";
-		echo "<a href='?modo=downloadModelo&amp;codtarefaturmaaluno=$codtarefaturmaaluno'\"><span class=\"glyphicon glyphicon-file\"></a></td></tr>";
+		echo "<a href='?modo=downloadModelo&amp;codtarefaturmausuario=$codtarefaturmausuario'\"><span class=\"glyphicon glyphicon-file\"></a></td></tr>";
 	}
 	echo "<tr>" .
-			"<td><b>Último envio:<b> $rowTarefaTurmaAluno[dataentrega2]</td>".
-			"<td><b>Envios:</b> $rowTarefaTurmaAluno[entregas]</td>".
+			"<td><b>Último envio:<b> $rowTarefaTurmaUsuario[dataentrega2]</td>".
+			"<td><b>Envios:</b> $rowTarefaTurmaUsuario[entregas]</td>".
 			"</tr><tr>" .
-			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaAluno[nota]</td>".			
+			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaUsuario[nota]</td>".
 			"</tr></table>";
-	$de = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datainicio"]);
-	$ate = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datafim"]);
+	$de = date_create_from_format('d/m/Y', $rowTarefaTurmaUsuario["datainicio"]);
+	$ate = date_create_from_format('d/m/Y', $rowTarefaTurmaUsuario["datafim"]);
 	$hoje = date_create_from_format('d/m/Y', date('d/m/Y'));
 	if ($hoje < $de or $hoje > $ate) {
 		echo "<h4>Fora do prazo de envio!</h4>";
 	} else {
-		formTarefa($codtarefaturmaaluno, $codaluno);
+		formTarefa($codtarefaturmausuario, $codusuario);
 	}
 	echo "<h3>Resultado último envio:</h3>";
-	$res = $rowTarefaTurmaAluno["resultados"];
+	$res = $rowTarefaTurmaUsuario["resultados"];
 	# ocultando saida
-	if ($rowTarefaTurmaAluno['retorno'] == 0) {
+	if ($rowTarefaTurmaUsuario['retorno'] == 0) {
 		$res = substr($res, 0, strpos($res, "===="));
 	}
 	echo "<pre>$res</pre>";
 	echo "<h3>Arquivos enviados:</h3>";
 
-	echo "Diretório: TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]\n";
-	$diretorio = "../uploads/CURSO$rowTarefaTurmaAluno[codcurso]/TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]";
+	echo "Diretório: TURMA$rowTarefaTurmaUsuario[codturma]/TTURMA$rowTarefaTurmaUsuario[codtarefaturma]/TTALUNO$rowTarefaTurmaUsuario[codtarefaturmausuario]\n";
+	$diretorio = "../uploads/CURSO$rowTarefaTurmaUsuario[codcurso]/TURMA$rowTarefaTurmaUsuario[codturma]/TTURMA$rowTarefaTurmaUsuario[codtarefaturma]/TTALUNO$rowTarefaTurmaUsuario[codtarefaturmausuario]";
 
 
-	foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaAluno["resultados"]) as $linha){
+	foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaUsuario["resultados"]) as $linha){
 		// do stuff with $line
 		if ((strpos($linha, "  inflating:") !== FALSE && strpos($linha, ".exe") === FALSE)) {
 			echo "\n<tr><td colspan='5'><pre>";
@@ -214,11 +214,11 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 				echo "\n $output</pre></td></tr>\n";
 		}
 	}
-}	
+}
 
-function listaTarefas($db, $codaluno) { 
+function listaTarefas($db, $codusuario) {
 	$cmd = "select " .
-		"codtarefaturmaaluno , " .
+		"codtarefaturmausuario , " .
 		"t.sigla AS tarefasigla, ".
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla , " .
@@ -228,13 +228,13 @@ function listaTarefas($db, $codaluno) {
 		"to_char(tt.datafim, 'DD/MM/YYYY') as datafim, " .
 		"(tt.datafim >= CURRENT_DATE) as prazo  " .
 		"FROM " .
-		"tarefaturmaaluno tta " .
+		"tarefaturmausuario tta " .
 		"inner join tarefaturma tt ON tt.codtarefaturma = tta.codtarefaturma " .
 		"INNER JOIN tarefa t ON t.codtarefa = tt.codtarefa " .
 		"INNER JOIN turma tu ON tu.codturma = tt.codturma " .
-		"INNER JOIN aluno al ON al.codaluno = tta.codaluno " .
+		"INNER JOIN usuario al ON al.codusuario = tta.codusuario " .
 		"INNER JOIN curso c ON c.codcurso = tu.codcurso " .
-		"where  tta.codaluno = $codaluno ".
+		"where  tta.codusuario = $codusuario ".
 		"ORDER BY tt.codturma desc, t.sigla asc";
 	$tblTarefas = $db->prepare($cmd);
 	$tblTarefas->execute();
@@ -254,7 +254,7 @@ function listaTarefas($db, $codaluno) {
 				"<td>$rowTarefas[cursosigla]</td>".
 				"<td>$rowTarefas[turmasigla]</td>".
 				"<td>" .
-				"<a href='tarefa.php?codtarefaturmaaluno=$rowTarefas[codtarefaturmaaluno]'>" .
+				"<a href='tarefa.php?codtarefaturmausuario=$rowTarefas[codtarefaturmausuario]'>" .
 				"$rowTarefas[tarefasigla]</a></td>" .
 				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[datainicio]</td>".
 				"<td " . ($rowTarefas["prazo"] ? "class=\"bg-success\"" : "") . ">$rowTarefas[datafim]</td>".
@@ -267,16 +267,16 @@ function listaTarefas($db, $codaluno) {
 	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>**NOTA APÓS CORREÇÃO<br>";
 }
 
-function listaNotas($db, $codaluno) {
+function listaNotas($db, $codusuario) {
 	echo "<h3>Notas:</h3>";
 	$cmd = "SELECT ta.codturma, t.descricao AS turma, c.descricao AS curso ".
-			"FROM turmaaluno ta ".
+			"FROM turmausuario ta ".
 			"INNER JOIN turma t ON ta.codturma = t.codturma ".
 			"INNER JOIN curso c ON t.codcurso = c.codcurso ".
-			"WHERE ta.codaluno = :codaluno ".
+			"WHERE ta.codusuario = :codusuario ".
 			"ORDER BY ta.codturma desc";
     $tblTurmas = $db->prepare($cmd);
-    $tblTurmas->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+    $tblTurmas->bindValue(':codusuario', $codusuario, PDO::PARAM_INT);
     $tblTurmas->execute();
 	while ($row = $tblTurmas->fetch(PDO::FETCH_ASSOC)) {
 		echo "<h4>Curso: $row[curso] - Turma: $row[turma]</h4>";
@@ -298,35 +298,35 @@ function listaNotas($db, $codaluno) {
 				$avaliacoes[] = $row["codtarefaturma"];
 			}
 		}
-		# alunos
-		$cmd = "SELECT a.codaluno, a.nome, a.email ".
-					"FROM aluno a ".
-					"INNER JOIN turmaaluno ta ON a.codaluno = ta.codaluno ".
+		# usuarios
+		$cmd = "SELECT a.codusuario, a.nome, a.email ".
+					"FROM usuario a ".
+					"INNER JOIN turmausuario ta ON a.codusuario = ta.codusuario ".
 					"WHERE codturma = :codturma ".
-					"AND a.codaluno = :codaluno ".
+					"AND a.codusuario = :codusuario ".
 					"ORDER BY a.nome";
 		$tblAlunos = $db->prepare($cmd);
 		$tblAlunos->bindValue(':codturma', $codturma, PDO::PARAM_INT);
-		$tblAlunos->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+		$tblAlunos->bindValue(':codusuario', $codusuario, PDO::PARAM_INT);
 		$tblAlunos->execute();
-		$alunos=array();
+		$usuarios=array();
 		while ($row = $tblAlunos->fetch(PDO::FETCH_ASSOC)) {
-			$alunos[] = $row;
+			$usuarios[] = $row;
 		}
 		# notas
-		$cmd = "SELECT tta.codtarefaturma, codaluno, notafinal ".
-					"FROM tarefaturmaaluno tta ".
+		$cmd = "SELECT tta.codtarefaturma, codusuario, notafinal ".
+					"FROM tarefaturmausuario tta ".
 					"INNER JOIN tarefaturma tt ON tta.codtarefaturma = tt.codtarefaturma ".
 					"WHERE codturma = :codturma ".
-					"AND tta.codaluno = :codaluno ".
+					"AND tta.codusuario = :codusuario ".
 					"";
 		$tblAlunos = $db->prepare($cmd);
 		$tblAlunos->bindValue(':codturma', $codturma, PDO::PARAM_INT);
-		$tblAlunos->bindValue(':codaluno', $codaluno, PDO::PARAM_INT);
+		$tblAlunos->bindValue(':codusuario', $codusuario, PDO::PARAM_INT);
 		$tblAlunos->execute();
 		$notas = array();
 		while ($row = $tblAlunos->fetch(PDO::FETCH_ASSOC)) {
-			$notas[$row["codaluno"]][$row["codtarefaturma"]] = $row["notafinal"];
+			$notas[$row["codusuario"]][$row["codtarefaturma"]] = $row["notafinal"];
 		}
 		# exibição
 		echo "<table class=\"table\">".
@@ -335,16 +335,16 @@ function listaNotas($db, $codaluno) {
 			echo "<th>$tarefa[sigla]</th>";
 		}
 		echo "<th>FINAL</th></tr>";
-		foreach ($alunos as $aluno) {
+		foreach ($usuarios as $usuario) {
 			echo "<tr>";
 			$notasAv = 0;
 			$notasTrab = 0;
 			foreach ($tarefas as $tarefa) {
-				echo "<td class=\"text-center\">" . $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]] . "</td>\n";
+				echo "<td class=\"text-center\">" . $notas[$usuario["codusuario"]][$tarefa["codtarefaturma"]] . "</td>\n";
 				if (in_array($tarefa["codtarefaturma"], $avaliacoes)) {
-					$notasAv += $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]];
+					$notasAv += $notas[$usuario["codusuario"]][$tarefa["codtarefaturma"]];
 				} else {
-					$notasTrab += $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]];
+					$notasTrab += $notas[$usuario["codusuario"]][$tarefa["codtarefaturma"]];
 				}
 			}
 			$notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 7 * 0.3));
@@ -352,26 +352,26 @@ function listaNotas($db, $codaluno) {
 				$notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 6 * 0.3));
 			}
 			echo "<td class=\"text-center\">$notaFinal</td>";
-			echo "</tr>";		
+			echo "</tr>";
 		}
 		echo "</table>";
 	}
 }
 
 if ($modo == "upload") {
-	enviaTarefa($db, $codtarefaturmaaluno, $codaluno);
+	enviaTarefa($db, $codtarefaturmausuario, $codusuario);
 }
 
 if ($modo == "downloadModelo") {
-	downloadModelo($db, $codtarefaturmaaluno, $codaluno);
+	downloadModelo($db, $codtarefaturmausuario, $codusuario);
 }
 
-if ($codtarefaturmaaluno) {
-	detalheTarefa($db, $codtarefaturmaaluno, $codaluno);
-	
+if ($codtarefaturmausuario) {
+	detalheTarefa($db, $codtarefaturmausuario, $codusuario);
+
 } else {
-	listaTarefas($db, $codaluno);
-	#listaNotas($db, $codaluno);
+	listaTarefas($db, $codusuario);
+	#listaNotas($db, $codusuario);
 }
 ?>
 </div>

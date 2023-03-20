@@ -72,8 +72,8 @@ if ($showHeader) {
 			<?php if ($codtipousuario < 4) { ?>
 				<li class="nav-item"><a class="nav-link" href="cadcurso.php">Cursos</a></li>
 				<li class="nav-item"><a class="nav-link" href="cadturma.php">Turmas</a></li>
-				<li class="nav-item"><a class="nav-link" href="cadaluno.php">Usuários</a></li>
-				<li class="nav-item"><a class="nav-link" href="cadplugin.php">Corretores</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadusuario.php">Usuários</a></li>
+				<li class="nav-item"><a class="nav-link" href="cadcorretor.php">Corretores</a></li>
 				<li class="nav-item"><a class="nav-link" href="cadtarefa.php">Tarefas</a></li>
 				<li class="nav-item"><a class="nav-link" href="relnotas.php">Notas</a></li>
 			<?php } ?>

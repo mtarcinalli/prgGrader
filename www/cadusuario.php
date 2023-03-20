@@ -1,10 +1,10 @@
 <?php require_once 'header.php';
 
-class Formulario {	
+class Formulario {
 	private $db;
 	private $modo;
 	private $arquivo;
-	
+
 	function __construct($arquivo, $db) {
 		$this->modo = (isset($_REQUEST['modo']) ? $_REQUEST['modo'] : false);
 		$this->arquivo = $arquivo;
@@ -13,24 +13,24 @@ class Formulario {
 			echo "não abriu bd";
 		$this->acao();
 	}
-	
+
 	function salvar() {
 		$db = $this->db;
 		if ($_REQUEST['cp'] != "") {
-			$cmd = "UPDATE aluno SET " .
+			$cmd = "UPDATE usuario SET " .
 					"codtipousuario = :codtipousuario, " .
 					"nome = :nome, " .
 					"email = :email, " .
 					($_REQUEST['senha'] ? "senha = :senha, " : "") .
 					"observacao = :observacao " .
-					"WHERE codaluno = :cp";
+					"WHERE codusuario = :cp";
 			$stmt = $db->prepare($cmd);
 			$stmt->bindValue(':cp', $_REQUEST['cp'], PDO::PARAM_INT);
-			
+
 			$acao = "alterar";
 			$_REQUEST['cod'] = "";
 		} else {
-			$cmd = "INSERT INTO aluno " .
+			$cmd = "INSERT INTO usuario " .
 				"(codtipousuario, nome, email, senha, observacao) " .
 				"VALUES " .
 				"(:codtipousuario, :nome, :email, :senha, :observacao) ";
@@ -51,12 +51,12 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!  [$acao]</div>";
 		}
 	}
-	
+
 	function excluir() {
 		$db = $this->db;
-		$cmd = "DELETE FROM aluno where codaluno = :codaluno";
+		$cmd = "DELETE FROM usuario where codusuario = :codusuario";
 		$stmt = $db->prepare($cmd);
-		$stmt->bindValue(':codaluno', $_REQUEST['cod'], PDO::PARAM_INT);
+		$stmt->bindValue(':codusuario', $_REQUEST['cod'], PDO::PARAM_INT);
 		try {
 			$ok = $stmt->execute();
 		} catch (Exception $e) {
@@ -72,13 +72,13 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
 		}
 	}
-		
+
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT " .
 				"a.*, " .
 				"t.descricao as tipousuario " .
-				"FROM aluno a " .
+				"FROM usuario a " .
 				"LEFT JOIN tipousuario t ON a.codtipousuario = t.codtipousuario " .
 				"ORDER BY nome asc";
 		$tbl = $db->prepare($cmd);
@@ -94,25 +94,28 @@ class Formulario {
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codaluno]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codaluno]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
-			echo "<td>$row[nome]</td>" . 
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codusuario]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codusuario]'\"><span class=\"glyphicon glyphicon-education\"></span></a> </td>";
+			echo "<td>$row[nome]</td>" .
 				"<td>$row[email]</td>" .
 				"<td>$row[tipousuario]</td>" .
 				"<td>$row[observacao]</td>";
 			echo "</tr>";
 		}
 		echo "</table>";
-	}	
-	
+	}
+
 	function formulario() {
 		$db = $this->db;
 		if ($this->modo =="alterar") {
-			$cmd = "SELECT * FROM aluno WHERE codaluno = :codaluno";
+			$cmd = "SELECT * FROM usuario WHERE codusuario = :codusuario";
 			$tbl = $db->prepare($cmd);
-			$tbl->bindValue(':codaluno', $_REQUEST['cod'], PDO::PARAM_INT);
+			$tbl->bindValue(':codusuario', $_REQUEST['cod'], PDO::PARAM_INT);
 			$tbl->execute();
 			$rowTbl = $tbl->fetch();
+			echo '<h2 class="no-margin-bottom">Usuário: alterar</h2>';
+		} else {
+			echo '<h2 class="no-margin-bottom">Usuário: adicionar</h2>';
 		}
 		?>
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
@@ -145,13 +148,13 @@ class Formulario {
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Salvar</button>
+				<button type="submit" class="btn btn-primary form-control">Salvar</button>
 			</div>
 		</form>
 		<br>
-		<?php	
+		<?php
 	}
-	
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
@@ -159,7 +162,7 @@ class Formulario {
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-		$this->formulario();	
+		$this->formulario();
 		$this->listar();
 	}
 }

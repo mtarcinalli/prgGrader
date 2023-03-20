@@ -1,10 +1,10 @@
 <?php require_once 'header.php';
 
-class Formulario {	
+class Formulario {
 	private $db;
 	private $modo;
 	private $arquivo;
-	
+
 	function __construct($arquivo, $db) {
 		$this->modo = (isset($_REQUEST["modo"]) ? $_REQUEST["modo"] : "");
 		$this->arquivo = $arquivo;
@@ -13,7 +13,7 @@ class Formulario {
 			echo "não abriu bd";
 		$this->acao();
 	}
-	
+
 	function salvar() {
 		$db = $this->db;
 		if ($_REQUEST['cp'] != "") {
@@ -40,7 +40,7 @@ class Formulario {
 		$stmt->bindValue(':retorno', $retorno, PDO::PARAM_BOOL);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
-		# creating directory		
+		# creating directory
 		if (! isset($cp) && $ok) {
 			$cmd = "SELECT max(codcorretor) AS cp FROM corretor";
 			$tbl = $db->prepare($cmd);
@@ -52,7 +52,7 @@ class Formulario {
 			$output = shell_exec($cmd);
 		}
 		$uploaddir = "../uploads/CORRETORES/CORRETOR$cp/";
-		
+
 		# uploading
 		if ($_FILES['arquivo']['tmp_name']) {
 			$uploadfile = $uploaddir . "corretor.zip";
@@ -81,7 +81,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao alterar registro!</div>";
 		}
 	}
-	
+
 	function excluir() {
 		$db = $this->db;
 		$cmd = "DELETE FROM corretor where codcorretor = :codcorretor";
@@ -102,7 +102,7 @@ class Formulario {
 			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao excluir registro!</div>";
 		}
 	}
-		
+
 	function listar() {
 		$db = $this->db;
 		$cmd = "SELECT * FROM corretor p ORDER BY descricao desc";
@@ -124,8 +124,8 @@ class Formulario {
 			echo "</tr>";
 		}
 		echo "</table>";
-	}	
-	
+	}
+
 	function formulario() {
 		$db = $this->db;
 		$retorno = 0;
@@ -136,9 +136,12 @@ class Formulario {
 			$tbl->execute();
 			$rowTbl = $tbl->fetch();
 			$retorno = $rowTbl['retorno'];
+			echo '<h2 class="no-margin-bottom">Corretor: alterar</h2>';
+		} else {
+			echo '<h2 class="no-margin-bottom">Corretor: adicionar</h2>';
 		}
 		?>
-		
+
 		<form action="<?php echo $this->arquivo; ?>" method="post" enctype="multipart/form-data" class="form">
 			<div class="form-group">
 				<label for="descricao">Corretor:</label>
@@ -159,12 +162,12 @@ class Formulario {
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Salvar</button>
+				<button type="submit" class="btn btn-primary form-control">Salvar</button>
 			</div>
 		</form>
 		<?php
 	}
-	
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
@@ -172,7 +175,7 @@ class Formulario {
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
-		$this->formulario();	
+		$this->formulario();
 		$this->listar();
 	}
 }

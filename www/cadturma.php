@@ -94,9 +94,9 @@ class Formulario {
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
-			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\"><i class=\"bi bi-trash\"></i></a> </td>";
-			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\"><i class=\"bi bi-pencil\"></i></a> </td>";
-			echo "<td><a href='cadturmaaluno.php?modo=alunos&amp;codturma=$row[codturma]'\"><span class=\"glyphicon glyphicon-education\"></span></a> </td>";
+			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturma]'\"><i class=\"bi bi-trash\"></i></a></td>";
+			echo "<td><a href='?modo=alterar&amp;cod=$row[codturma]'\"><i class=\"bi bi-pencil\"></i></a></td>";
+			echo "<td><a href='cadturmausuario.php?modo=usuarios&amp;codturma=$row[codturma]'\"><i class=\"bi bi-person-add\"></i></a></td>";
 			echo "<td>$row[curso]</td>" .
 				"<td>$row[descricao]</td>" .
 				"<td>$row[sigla]</td>" .
@@ -114,6 +114,9 @@ class Formulario {
 			$tbl->bindValue(':codturma', $_REQUEST['cod'], PDO::PARAM_INT);
 			$tbl->execute();
 			$rowTbl = $tbl->fetch();
+			echo '<h2 class="no-margin-bottom">Turma: alterar</h2>';
+		} else {
+			echo '<h2 class="no-margin-bottom">Turma: adicionar</h2>';
 		}
 		?>
 		<form action="<?php echo $this->arquivo; ?>" method="post" role="form">
@@ -144,7 +147,9 @@ class Formulario {
 				<input type="hidden" name="modo" value="salvar">
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Salvar</button>
+				<div class="col-sm-12">
+					<button type="submit" class="btn btn-primary form-control">Salvar</button>
+				</div>
 			</div>
 		</form>
 		<br>
