@@ -9,42 +9,25 @@ OUT_DIR="$SUBMISSION_DIR/out"
 TIMEOUT_CMD="timeout"
 TIMEOUT_SECS=5
 
-# Checking java files
+# Checking C files
 shopt -s nullglob
-JAVA_FILES=("$SUBMISSION_DIR"/*.java)
-if [ ${#JAVA_FILES[@]} -eq 0 ]; then
-	echo "ERROR: nenhum arquivo .java encontrado em $SUBMISSION_DIR"
+C_FILES=("$SUBMISSION_DIR"/*.c)
+if [ ${#C_FILES[@]} -eq 0 ]; then
+	echo "ERROR: nenhum arquivo .c encontrado em $SUBMISSION_DIR"
 	exit 1
 fi
 
 # Compile
 echo "Compilando..."
-if ! javac *.java 2>compile.err; then
+MAIN_EXEC="main"
+EXEC_PATH="$SUBMISSION_DIR/$MAIN_EXEC"
+if ! gcc "${C_FILES[@]}" -std=c99 -O2 -Wall -Wextra -o "$EXEC_PATH" 2>compile.err; then
 	echo "COMPILE_ERROR"
 	cat compile.err
 	exit 2
 fi
-
-# Detectar classe com main
-MAIN_CLASS=""
-for f in *.java; do
-	if grep -q "public static void main" "$f"; then
-		MAIN_CLASS="${f%.java}"
-		break
-	fi
-done
-if [ -z "$MAIN_CLASS" ]; then
-	# fallback: usar primeira classe compilada
-	first_class=$(ls *.class 2>/dev/null | head -n1 || true)
-	if [ -n "$first_class" ]; then
-		MAIN_CLASS="${first_class%.class}"
-	else
-		echo "ERROR: nenhuma classe compilada encontrada"
-		exit 3
-	fi
-fi
-
-echo "Usando classe principal: $MAIN_CLASS"
+# garantir permissão de execução
+chmod +x "$EXEC_PATH" || true
 
 # Run tests
 if [ ! -d "$IN_DIR" ]; then
@@ -73,7 +56,7 @@ for in_file in "${inputs[@]}"; do
 	echo -e "Expected:"
 	cat $expected
 
-	if ! $TIMEOUT_CMD ${TIMEOUT_SECS}s java "$MAIN_CLASS" < "$in_file" > "$actual" 2>"run_${total}.err"; then
+	if ! $TIMEOUT_CMD ${TIMEOUT_SECS}s "$EXEC_PATH" < "$in_file" > "$actual" 2>"run_${total}.err"; then
 		echo "Result: RUNTIME_ERROR"
 		echo "Stderr:"; sed -n '1,200p' "run_${total}.err"
 		continue
