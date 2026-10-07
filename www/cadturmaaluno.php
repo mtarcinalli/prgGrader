@@ -170,12 +170,14 @@ class Form {
 		echo "<table class=\"table table-striped\">" .
 				"<tr>" .
 				"<th></th>" .
+				"<th>Código</th>" .
 				"<th>Nome</th>" .
 				"<th>E-mail</th>" .
 				"</tr>";
 		while ($row = $tbl->fetch()) {
 			echo "<tr>";
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) window.location='?modo=exclui&amp;cod=$row[codturmaaluno]&amp;codturma=$_REQUEST[codturma]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
+			echo "<td>$row[codturmaaluno]</td>";
 			echo "<td>$row[nome]</td>";
 			echo "<td>$row[email]</td>";
 			echo "</tr>";
