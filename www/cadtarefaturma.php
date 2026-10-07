@@ -220,7 +220,7 @@ class Form {
 						while ($row = $tbl->fetch()){
 							echo "<option value='$row[codturma]' ";
 							if (isset($rowTurma))
-								if ($row['codturma'] == $rowTbl['codturma'] || $row['codturma'] == $rowTurma['codturma'])
+								if ($row['codturma'] == @$rowTbl['codturma'] || $row['codturma'] == $rowTurma['codturma'])
 									echo " selected";
 							echo ">$row[sigla] - $row[descricao]</option>";
 						}
@@ -316,7 +316,7 @@ class Form {
 						$cmd = "SELECT " .
 								"tta.codtarefaturmaaluno , " .
 								"a.nome , " .
-								"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega , " .
+								"to_char(datahoraentrega, 'DD/MM/YYYY HH24:MI:SS') as dataentrega , " .
 								"tta.entregas , " .
 								"tta.resultados , " .
 								"tta.notafinal, " .
@@ -332,10 +332,10 @@ class Form {
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
 							"<tr>" .
 							"<th></th>" .
-							"<th>Cod</th>" .
+							"<th></th>" .
 							"<th>Aluno</th>" .
-							"<th>Data</th>" .
-							"<th>Entregas</th>" .
+							"<th>Entrega</th>" .
+							"<th>Tentativas</th>" .
 							"<th>Nota</th>" .
 							"<th>Nota Final</th>" .
 							"</tr>";
@@ -347,7 +347,8 @@ class Form {
 									"<span class=\"glyphicon glyphicon-trash\"></span></a> </td>" .
 									"<td>" .
 									"<a href=\"cadtarefaaluno.php?cp=$rowAluno[codtarefaturmaaluno]&amp;codtarefa=$_REQUEST[codtarefa]\">" .
-									"$rowAluno[codtarefaturmaaluno]" .
+									"<span class=\"glyphicon glyphicon-search\"></span>" .
+									#"$rowAluno[codtarefaturmaaluno]" .
 									"</a>" .
 									"</td>" .
 									"<td>$rowAluno[nome]</td>" .
