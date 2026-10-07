@@ -8,13 +8,13 @@ if (! $db) {
 $codtarefaturmaaluno = (isset($_REQUEST['codtarefaturmaaluno']) && is_numeric($_REQUEST['codtarefaturmaaluno']) ? $_REQUEST['codtarefaturmaaluno'] : null);
 $modo = @$_REQUEST['modo'];
 
-function formTarefa($codtarefaturmaaluno, $codaluno) {
+function formTarefa($codtarefaturmaaluno, $codaluno, $tipoArquivo = null) {
 	?>
 	<form action="tarefa.php" method="post" enctype="multipart/form-data" class="form-inline">
 		<input type="hidden" name="modo" value="upload">
 		<input type="hidden" name="codtarefaturmaaluno" value="<?php echo $codtarefaturmaaluno; ?>">
 		<label for="arquivo">Selecione o arquivo a ser enviado:</label>
-		<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
+		<input type="file" name="arquivo" id="arquivo" class="form-control" <?php echo ($tipoArquivo ? "accept=\".$tipoArquivo\"" : ""); ?>>
 		<button type="submit" class="btn btn-primary">Enviar arquivo</button>
 	</form>
 	<?php
@@ -56,6 +56,8 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"tt.codtarefa , " .
 		"t.sigla AS tarefasigla, ".
 		"t.codplugin, " .
+		"t.tipoarquivo, " .
+		"t.arquivocompactado, " .
 		"tu.sigla AS turmasigla , " .
 		"c.sigla AS cursosigla " .
 		"FROM " .
@@ -71,8 +73,11 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
 	$uploadfile = $uploaddir . "arquivo.zip";
+	$originalName = basename($_FILES['arquivo']['name']);
+	$uploadfile = $uploaddir . $originalName;
 	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
 	$codplugin = $rowTarefaTurmaAluno['codplugin'];
+	$arquivoCompactado = $rowTarefaTurmaAluno['arquivocompactado'];
 	$files = glob($uploaddir . "*");
 	foreach($files as $file){
 		if(is_file($file)) {
@@ -85,20 +90,24 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	}
 	$cmd = "cd $uploaddir && ls && echo '---' && " .
 			"ls && " .
-			"unzip -j arquivo.zip && " .
+			($arquivoCompactado == 1 ? "unzip -j arquivo.zip && " : "") .
 			"cp -a ../../../../TAREFAS/T" . $codtarefa .  "/solution/* . && " .
 			"cp -a ../../../../CORRETORES/PLUGIN" . $codplugin .  "/corretor/* . && " .
 			"bash ./grader.sh";
 	$output = trim(shell_exec($cmd));
+	$output = iconv('UTF-8', 'UTF-8//IGNORE', $output);
 	$nota = intval(trim(substr($output, strrpos($output, "\n"), -1)));
 	$comando = "UPDATE tarefaturmaaluno SET " .
 			"resultados = :resultados , " .
 			"entregas = entregas + 1 , " .
-			"dataentrega = date('now'), " .
+			"dataentrega = CURRENT_DATE, " .
+			"datahoraentrega = CURRENT_TIMESTAMP, " .
+			"nomearquivo = :nomearquivo, " .
 			"nota = :nota " .
 			"WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
 	$query = $db->prepare($comando);
 	$query->bindValue(':resultados', $output, PDO::PARAM_STR);
+	$query->bindValue(':nomearquivo', $originalName, PDO::PARAM_STR);
 	$query->bindValue(':nota', $nota, PDO::PARAM_INT);
 	$query->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
 	if (! $query) {
@@ -125,8 +134,9 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		"c.descricao AS curso , " .
 		"to_char(datainicio, 'DD/MM/YYYY') as datainicio, " .
 		"to_char(datafim, 'DD/MM/YYYY') as datafim, " .
-		"to_char(dataentrega, 'DD/MM/YYYY') as dataentrega2, " .
+		"to_char(datahoraentrega, 'DD/MM/YYYY HH24:MI:SS') as dataentrega2, " .
 		"t.instrucoes , " .
+		"t.tipoarquivo , " .
 		"p.retorno , " .
 		"tta.* " .
 		"FROM " .
@@ -141,6 +151,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$tblTarefaTurmaAluno = $db->prepare($cmd);
 	$tblTarefaTurmaAluno->execute();
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
+	$tipoArquivo = $rowTarefaTurmaAluno['tipoarquivo'];
 	if (! $rowTarefaTurmaAluno)
 		return;
 	?>
@@ -178,7 +189,7 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	if ($hoje < $de or $hoje > $ate) {
 		echo "<h4>Fora do prazo de envio!</h4>";
 	} else {
-		formTarefa($codtarefaturmaaluno, $codaluno);
+		formTarefa($codtarefaturmaaluno, $codaluno, $tipoArquivo);
 	}
 	echo "<h3>Resultado último envio:</h3>";
 	$res = $rowTarefaTurmaAluno["resultados"];
