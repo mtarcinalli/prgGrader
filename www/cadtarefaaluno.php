@@ -165,24 +165,52 @@ class Form {
 									}
 								} 
 								
-								echo "\n<tr><td colspan='6'><pre>";
-								$arq = "solution.h";
-								echo "$arq:<br><br>";
-								$output = file_get_contents("$diretorio/$arq");
-								$enc = mb_detect_encoding($output);
+								
 
-								if ($output) {
-									echo "ok\n$enc\n";
-									$contents = htmlentities($output, ENT_QUOTES, $enc);
+
+								if (is_dir($diretorio)) {
+									// Lê todos os itens do diretório
+									$itens = scandir($diretorio);
+
+									foreach ($itens as $item) {
+										// Ignora os ponteiros do sistema (. e ..)
+										if ($item === '.' || $item === '..'|| $item === 'grader.sh') {
+											continue;
+										}
+
+										if ('.txt' === substr($item, -4)) {
+											continue;
+										}
+
+										if ('.norm' === substr($item, -5)) {
+											continue;
+										}
+
+										$caminhoCompleto = $diretorio . DIRECTORY_SEPARATOR . $item;
+
+										// Processa apenas se for um arquivo
+										if (is_file($caminhoCompleto)) {
+
+											// Obtém o tipo MIME do arquivo
+											$tipoMime = mime_content_type($caminhoCompleto);
+
+											// Verifica se o arquivo é de texto (ex: text/plain, text/html, etc.)
+											if (strpos($tipoMime, 'text/') === 0) {
+												echo "\n<tr><td colspan='6'><pre>";
+												echo "Arquivo: $item\n";
+												echo "Conteúdo:\n";
+												// Exibe o conteúdo (usando htmlspecialchars caso rode no navegador)
+												$conteudo = file_get_contents($caminhoCompleto);
+												echo htmlspecialchars($conteudo) . "\n";
+												echo "</pre></td></tr>\n";
+											}
+										}
+									}
 								} else {
-									echo "erro: $diretorio/$arq\n\n$output";
+									echo "O diretório informado não existe.";
 								}
-								if ($contents)
-									echo "ok2: \n$contents</pre></td></tr>\n";
-								else
-									echo "not ok2:\n $output</pre></td></tr>\n";
 
-
+								
 							}
 						}
 						echo "</table>";
