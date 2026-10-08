@@ -173,7 +173,7 @@ class Form {
 		}
 	}
 
-	function formulario() {
+	function formulario($headerMode = false) {
 		$db = $this->db;
 		$cmd = "SELECT t.* FROM tarefa t WHERE codtarefa = :codtarefa";
 		$tbl = $db->prepare($cmd);
@@ -198,12 +198,43 @@ class Form {
 		?>
 		<hr>
 		<?php
-		if ($this->modo == "alterar") {
-			$cmd = "SELECT * FROM tarefaturma WHERE codtarefaturma = :codtarefaturma";
+		if ($this->modo == "alterar" or $this->modo == "moss") {
+			$cmd = "SELECT " .
+				"tt.* " .
+				", to_char(datainicio, 'DD/MM/YYYY') as datainicio " .
+				", to_char(datafim, 'DD/MM/YYYY') as datafim " .
+				", t.descricao AS turma " .
+				", t.sigla AS siglaturma " .
+				", c.descricao AS curso " .
+				", c.sigla AS siglacurso " .
+				"FROM tarefaturma tt " .
+				"INNER JOIN turma t ON t.codturma = tt.codturma " .
+				"INNER JOIN curso c on c.codcurso = t.codcurso " .
+				"WHERE codtarefaturma = :codtarefaturma";
 			$tbl = $db->prepare($cmd);
 			$tbl->bindValue(':codtarefaturma', $_REQUEST['cod'], PDO::PARAM_INT);
 			$tbl->execute();
 			$rowTurma = $tbl->fetch();
+		}
+		if ($headerMode) {
+			echo "<h4>Atribuido para:</h4>";
+			echo "<table class='table'>" .
+				"<tr>" .
+				"<th>Curso:</th>" .
+				"<td>$rowTurma[curso] - $rowTurma[siglacurso]</td>" .
+				"<th>Turma:</th>" .
+				"<td>$rowTurma[turma] - $rowTurma[siglaturma]</td>" .
+				"</tr><tr>" .
+				"<th>Início:</th>" .
+				"<td>$rowTurma[datainicio]</td>" .
+				"<th>Fim:</th>" .
+				"<td>$rowTurma[datafim]</td>" .
+				"</tr><tr>" .
+				"<th>Observações:</th>" .
+				"<td colspan='4'>" . nl2br($rowTbl['observacao']) . "</td>" .
+				"</tr>" .
+				"</table>";
+			return;
 		}
 		?>
 		<h3>Atribuir tarefa para turma:</h3>
@@ -278,6 +309,7 @@ class Form {
 				"<tr>" .
 				"<th></th>" .
 				"<th></th>" .
+				"<th></th>" .
 				"<th>Cod</th>" .
 				"<th>Turma</th>" .
 				"<th>Início</th>" .
@@ -289,6 +321,7 @@ class Form {
 			echo "<td><a href='#' OnClick=\"JavaScript: if (confirm('Confirma exclus&atilde;o?')) " .
 			"window.location='?modo=exclui&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-trash\"></span></a> </td>";
 			echo "<td><a href='?modo=alterar&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-pencil\"></span></a> </td>";
+			echo "<td><a href='?modo=moss&amp;cod=$row[codtarefaturma]&amp;codtarefa=$_REQUEST[codtarefa]'\"><span class=\"glyphicon glyphicon-duplicate\"></span></a> </td>";
 			echo "<td>$row[codtarefaturma]</td>";
 			echo "<td>$row[turma]($row[codturma])</td>";
 			echo "<td>$row[datainicio]</td>";
@@ -300,7 +333,7 @@ class Form {
 			<tr>
 				<td></td>
 				<td></td>
-				<td colspan="4"><a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4></td>
+				<td colspan="5"><a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4></td>
 				<td>
 					<input type="hidden" name="codtarefa" value="<?php echo $_REQUEST['codtarefa']; ?>">
 					<input type="hidden" name="modo" value="salvarNotas">
@@ -310,7 +343,7 @@ class Form {
 			<tr>
 				<td></td>
 				<td></td>
-				<td colspan="5">
+				<td colspan="6">
 					<div id="alunos<?php echo $row['codtarefaturma']; ?>" class="card-body collapse">
 						<?php
 						$cmd = "SELECT " .
@@ -375,6 +408,155 @@ class Form {
 		echo "</table>";
 	}
 
+	function moss() {
+		$db = $this->db;
+		echo "<h4>Verificação de plágio - MOSS</h4>";
+		$codtarefa = $_REQUEST['codtarefa'];
+		$codtarefaturma = $_REQUEST['cod'];
+		# buscando codturma e codcurso da tarefa
+		$cmd = "SELECT " .
+			"tt.codturma " .
+			", tt.metadados " .
+			", t.codcurso " .
+			"FROM tarefaturma tt " .
+			"INNER JOIN turma t ON t.codturma = tt.codturma " .
+			"WHERE codtarefaturma = :codtarefaturma";
+		$tbl = $db->prepare($cmd);
+		$tbl->bindValue(':codtarefaturma', $codtarefaturma, PDO::PARAM_INT);
+		$tbl->execute();
+		$rowTurma = $tbl->fetch();
+		$codturma = $rowTurma['codturma'];
+		$codcurso = $rowTurma['codcurso'];
+		// echo "<pre>";
+		// print_r($rowTurma);
+		// echo "</pre>";
+		# montando dicionario com alunos da turma
+		$cmd = "SELECT " .
+			"tta.codtarefaturmaaluno " .
+			", a.nome " .
+			"FROM tarefaturmaaluno tta " .
+			"INNER JOIN aluno a ON a.codaluno = tta.codaluno " .
+			"WHERE tta.codtarefaturma = :codtarefaturma";
+		$tblAlunos = $db->prepare($cmd);
+		$tblAlunos->bindValue(':codtarefaturma', $codtarefaturma, PDO::PARAM_INT);
+		$tblAlunos->execute();
+		$alunos = array();
+		while ($rowAluno = $tblAlunos->fetch()) {
+			$alunos[$rowAluno['codtarefaturmaaluno']] = $rowAluno['nome'];
+		}
+		// echo "<pre>";
+		// print_r($alunos);
+		// echo "</pre>";
+		# executando o Moss
+
+		# verificar se existem mossUrl no campo metadados da tabela tarefaturma, se existir exibir o link mossUrl e o resultado mossResultado, se não existir executar o moss
+		$metadados = json_decode($rowTurma['metadados'], true);
+		# alterar o if para verificar o reprocessar, se existir o reprocessar no request, apagar o mossUrl e mossResultado do metadados e executar o moss novamente
+		if (isset($_REQUEST['reprocessar'])) {
+			unset($metadados['mossUrl']);
+			unset($metadados['mossResultado']);
+		}
+		
+		if (isset($metadados['mossUrl'])) {
+			$resUrl = $metadados['mossUrl'];
+			$resultado = $metadados['mossResultado'];
+			echo("Endereço resultado do Moss:<br><a href=\"$resUrl\" target=\"_blank\">$resUrl</a>");
+			# exibir data e hora do resultado do moss, que está no campo mossDataHora do metadados formatado como d/m/Y H:i:s
+			echo "<br>Data e hora do resultado do Moss: " . date('d/m/Y H:i:s', strtotime($metadados['mossDataHora']));
+
+			# exibir link para reprocessar o moss, que vai apagar o mossUrl e mossResultado do metadados e executar o moss novamente
+			echo "<br><a href='?modo=moss&amp;cod=$codtarefaturma&amp;codtarefa=$codtarefa&amp;reprocessar=1' class='btn btn-warning'>Reprocessar Moss</a>";
+			#echo "<pre>";
+			#echo $resultado;
+			#echo "</pre>";
+			#return;
+		} else {
+
+			$filesPath = "../uploads/CURSO$codcurso/TURMA$codturma/TTURMA$codtarefaturma/*/*.c";
+			#echo "<p>Arquivos a serem enviados para MOSS: $filesPath</p>";
+			include("moss.php");
+			$userid = "382132825"; // Enter your MOSS userid
+			$moss = new MOSS($userid);
+			$moss->setLanguage('c');
+			$moss->addByWildcard($filesPath);
+			#$moss->addBaseFile('../uploads/CURSO1/TURMA1/TTURMA7/TTALUNO167/main.c');
+			$moss->setCommentString("This is a test");
+
+			$resUrl = trim($moss->send());
+			#$resUrl = "http://moss.stanford.edu/results/8/2364435252706";
+			#$resUrl = "http://moss.stanford.edu/results/1/1490901169340";
+			#$resUrl = "http://moss.stanford.edu/results/1/9670971460613";
+			echo("Endereço resultado do Moss:<br><a href=\"$resUrl\" target=\"_blank\">$resUrl</a>");
+			
+
+			# download url recebida em $resUrl e exibir conteudo do arquivo moss.log
+			# try file_get_contents, se retornar 404 dar um tempo e tentar novamente, até 5 vezes
+			$maxRetries = 5;
+			$retryCount = 0;
+			while ($retryCount < $maxRetries) {
+				$logContent = @file_get_contents($resUrl);
+				if ($logContent !== false) {
+					break;
+				}
+				$retryCount++;
+				sleep(2); // Espera 2 segundos antes de tentar novamente
+			}
+			if ($logContent === false) {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao acessar o resultado do MOSS. Tente novamente mais tarde.</div>";
+				return;
+			}
+
+			$tags_para_remover = '/<\/?(html|head|title|body)[^>]*>/i';
+			$logFormatado = preg_replace($tags_para_remover, '', $logContent);
+			// echo "<pre>";
+			// echo $logFormatado;
+			// echo "</pre>";
+
+
+
+			$resultado = preg_replace_callback(
+				'/\.\.\/uploads\/[^\/]+\/[^\/]+\/[^\/]+\/TTALUNO(\d+)/',
+				function ($matches) use ($alunos) {
+					$idAluno = $matches[1]; // Pega apenas os dígitos após TTALUNO
+					
+					// Se encontrar no dicionário, substitui pelo Nome. Se não, mantém o texto original.
+					return isset($alunos[$idAluno]) ? $alunos[$idAluno] : $matches[0];
+				},
+				$logFormatado
+			);
+			$resultado = preg_replace('/<A\s+HREF=/i', '<A TARGET="_blank" HREF=', $resultado);
+
+
+			# salvar resultado, data e hora atual e mossurl no banco de dados no campo metadados (que é json) chaves mossUrl, mossDataHora e mossResultado data tabela tarefaturma
+			date_default_timezone_set('America/Sao_Paulo');
+			$metadados = array(
+				'mossUrl' => $resUrl,
+				'mossDataHora' => date('Y-m-d H:i:s'),
+				'mossResultado' => $resultado
+			);
+			$metadadosJson = json_encode($metadados);
+			$cmd = "UPDATE tarefaturma SET metadados = :metadados WHERE codtarefaturma = :codtarefaturma";
+			$stmt = $db->prepare($cmd);
+			$stmt->bindValue(':metadados', $metadadosJson, PDO::PARAM_STR);
+			$stmt->bindValue(':codtarefaturma', $codtarefaturma, PDO::PARAM_INT);
+			$ok = $stmt->execute();
+			# se ok exibir mensagem de sucesso, se não exibir mensagem de erro
+			if ($ok) {
+				echo "<div class=\"alert alert-success\" role=\"alert\">Resultado do MOSS salvo com sucesso!</div>";
+			} else {
+				echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao salvar resultado do MOSS!</div>";
+			}
+			echo "<a href='?modo=moss&amp;cod=$codtarefaturma&amp;codtarefa=$codtarefa&amp;reprocessar=1' class='btn btn-warning'>Reprocessar Moss</a>";
+		}
+
+		echo "<pre>";
+		echo $resultado;
+		echo "</pre>";
+
+
+
+	}
+
 	function acao() {
 		if ($this->modo == "salvar") {
 			$this->salvar();
@@ -391,8 +573,13 @@ class Form {
 		if ($this->modo == "upload") {
 			$this->importarAlunos();
 		}
-		$this->formulario();
-		$this->listar();
+		if ($this->modo == "moss") {
+			$this->formulario($headerMode = true);
+			$this->moss();
+		} else {
+			$this->formulario();
+			$this->listar();
+		}
 	}
 }
 
