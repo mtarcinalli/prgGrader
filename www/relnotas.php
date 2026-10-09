@@ -58,7 +58,7 @@ if (isset($_REQUEST["codturma"])) {
         $alunos[] = $row;
     }
     # notas
-    $cmd = "SELECT tta.codtarefaturma, codaluno, notafinal, codturma ".
+    $cmd = "SELECT tta.codtarefaturma, codaluno, nota as notafinal, codturma ".
                 "FROM tarefaturmaaluno tta ".
                 "INNER JOIN tarefaturma tt ON tta.codtarefaturma = tt.codtarefaturma ".
                 "WHERE codturma = :codturma ".
@@ -83,24 +83,16 @@ if (isset($_REQUEST["codturma"])) {
         echo "<tr>";
         echo "<td>$aluno[nome]</td>";
         echo "<td>$aluno[email]</td>";
-        $notasAv = 0;
-        $notasTrab = 0;
+        $notaTotal = 0;
         foreach ($tarefas as $tarefa) {
             if (array_key_exists($aluno["codaluno"], $notas)) {
+                $notaTotal += $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]];
                 echo "<td class=\"text-center\">" . $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]] . "</td>\n";
-                if (in_array($tarefa["codtarefaturma"], $avaliacoes)) {
-                    $notasAv += $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]];
-                } else {
-                    $notasTrab += $notas[$aluno["codaluno"]][$tarefa["codtarefaturma"]];
-                }
             } else {
                 echo "<td class=\"text-center\"></td>\n";
             }
         }
-        $notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 7 * 0.3));
-        if ($aluno["codturma"] == 9 || $aluno["codturma"] == 8) {
-            $notaFinal = ceil(  ($notasAv / 2 * 0.7) + ($notasTrab / 6 * 0.3));
-        }
+        $notaFinal = round($notaTotal / count($tarefas));
         echo "<td class=\"text-center\">$notaFinal</td>";
         echo "</tr>";
     }

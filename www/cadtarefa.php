@@ -27,6 +27,8 @@ class Formulario {
 					"descricao = :descricao, " .
 					"sigla = :sigla, " .
 					"instrucoes = :instrucoes, " .
+					"tipoarquivo = :tipoarquivo, " .
+					"arquivocompactado = :arquivocompactado, " .
 					"observacao = :observacao " .
 					"WHERE codtarefa = :cp";
 			$stmt = $db->prepare($cmd);
@@ -36,9 +38,9 @@ class Formulario {
 			$cp = $_REQUEST['cp'];
 		} else {
 			$cmd = "INSERT INTO tarefa " .
-				"(codplugin, descricao, sigla, instrucoes, observacao) " .
+				"(codplugin, descricao, sigla, instrucoes, tipoarquivo, arquivocompactado, observacao) " .
 				"VALUES " .
-				"(:codplugin, :descricao, :sigla, :instrucoes, :observacao) ";
+				"(:codplugin, :descricao, :sigla, :instrucoes, :tipoarquivo, :arquivocompactado, :observacao) ";
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
@@ -46,6 +48,8 @@ class Formulario {
 		$stmt->bindValue(':descricao', $_REQUEST['descricao'], PDO::PARAM_STR);
 		$stmt->bindValue(':sigla', $_REQUEST['sigla'], PDO::PARAM_STR);
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
+		$stmt->bindValue(':tipoarquivo', $_REQUEST['tipoarquivo'], PDO::PARAM_STR);
+		$stmt->bindValue(':arquivocompactado', isset($_REQUEST['arquivocompactado']) ? $_REQUEST['arquivocompactado'] : 0, PDO::PARAM_INT);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		if (! $cp && $ok) {
@@ -201,6 +205,14 @@ class Formulario {
 					}
 					?>
 				</select>
+				<div class="checkbox">
+					<label>
+						<input type="hidden" name="arquivocompactado" value="0">
+						<input type="checkbox" name="arquivocompactado" id="arquivocompactado" value="1" <?php echo (isset($rowTbl) && $rowTbl["arquivocompactado"] == 1 ? "checked" : ""); ?>> Arquivo compactado
+					</label>
+				</div>
+				<label for="tipoarquivo">Tipo de arquivo:</label>
+				<input type="text" name="tipoarquivo" id="tipoarquivo" value="<?php echo (isset($rowTbl) ? $rowTbl["tipoarquivo"] : ""); ?>" class="form-control">
 				<label for="arquivo">Arquivo solução:</label>
 				<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
 				<label for="arquivo">Arquivo modelo aluno:</label>
@@ -264,5 +276,26 @@ class Formulario {
 $frm = new Formulario($arquivo, $db);
 ?>
 </div>
+
+
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const chkCompactado = document.getElementById('arquivocompactado');
+		const inputTipo = document.getElementById('tipoarquivo');
+
+		function atualizarTipoArquivo() {
+			if (chkCompactado.checked) {
+				inputTipo.value = 'zip';
+				inputTipo.readOnly = true;
+			} else {
+				inputTipo.value = '';
+				inputTipo.readOnly = false;
+			}
+		}
+		// Escuta a mudança no checkbox
+		chkCompactado.addEventListener('change', atualizarTipoArquivo);
+	});
+</script>
+
 </body>
 </html>
