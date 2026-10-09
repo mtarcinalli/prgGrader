@@ -21,7 +21,7 @@ fi
 echo "Compilando..."
 MAIN_EXEC="main"
 EXEC_PATH="$SUBMISSION_DIR/$MAIN_EXEC"
-if ! gcc "${C_FILES[@]}" -std=c99 -O2 -Wall -Wextra -o "$EXEC_PATH" 2>compile.err; then
+if ! gcc "${C_FILES[@]}" -std=c99 -O2 -Wall -Wextra -o "$EXEC_PATH" -lm 2>compile.err; then
 	echo "COMPILE_ERROR"
 	cat compile.err
 	exit 2
