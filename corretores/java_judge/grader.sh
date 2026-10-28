@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# Configura o locale para UTF-8 no ambiente do bash
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
 # Uso: grader.sh [submission_dir]
 SUBMISSION_DIR="${1:-.}"
 IN_DIR="$SUBMISSION_DIR/in"
@@ -13,47 +17,47 @@ TIMEOUT_SECS=5
 shopt -s nullglob
 JAVA_FILES=("$SUBMISSION_DIR"/*.java)
 if [ ${#JAVA_FILES[@]} -eq 0 ]; then
-	echo "ERROR: nenhum arquivo .java encontrado em $SUBMISSION_DIR"
-	echo "0%"
-	exit 1
+    echo "ERROR: nenhum arquivo .java encontrado em $SUBMISSION_DIR"
+    echo "0%"
+    exit 1
 fi
 
 # Compile
 echo "Compilando..."
 if ! javac -encoding UTF-8 *.java 2>compile.err; then
-	echo "COMPILE_ERROR"
-	cat compile.err
-	echo "0%"
-	exit 2
+    echo "COMPILE_ERROR"
+    cat compile.err
+    echo "0%"
+    exit 2
 fi
 
 # Detectar classe com main
 MAIN_CLASS=""
 for f in *.java; do
-	if grep -q "public static void main" "$f"; then
-		MAIN_CLASS="${f%.java}"
-		break
-	fi
+    if grep -q "public static void main" "$f"; then
+        MAIN_CLASS="${f%.java}"
+        break
+    fi
 done
 if [ -z "$MAIN_CLASS" ]; then
-	# fallback: usar primeira classe compilada
-	first_class=$(ls *.class 2>/dev/null | head -n1 || true)
-	if [ -n "$first_class" ]; then
-		MAIN_CLASS="${first_class%.class}"
-	else
-		echo "ERROR: nenhuma classe compilada encontrada"
-		echo "0%"
-		exit 3
-	fi
+    # fallback: usar primeira classe compilada
+    first_class=$(ls *.class 2>/dev/null | head -n1 || true)
+    if [ -n "$first_class" ]; then
+        MAIN_CLASS="${first_class%.class}"
+    else
+        echo "ERROR: nenhuma classe compilada encontrada"
+        echo "0%"
+        exit 3
+    fi
 fi
 
 echo "Usando classe principal: $MAIN_CLASS"
 
 # Run tests
 if [ ! -d "$IN_DIR" ]; then
-	echo "WARNING: diretório de entrada $IN_DIR não existe ou vazio"
-	echo "0%"
-	exit 4
+    echo "WARNING: diretório de entrada $IN_DIR não existe ou vazio"
+    echo "0%"
+    exit 4
 fi
 
 inputs=("$IN_DIR"/input*.txt)
@@ -61,64 +65,60 @@ total=0
 passed=0
 
 normalize() {
-	sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' | sed -e :a -e '/^\n*$/{$d;N;ba;}'  > "$1.norm"
+    sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' | sed -e :a -e '/^\n*$/{$d;N;ba;}'  > "$1.norm"
 }
 
 for in_file in "${inputs[@]}"; do
-	total=$((total + 1))
-	
-	base=$(basename "$in_file")
-	out_name=${base/input/output}
-	expected="$OUT_DIR/$out_name"
-	actual="out_${total}.txt"
+    total=$((total + 1))
+    
+    base=$(basename "$in_file")
+    out_name=${base/input/output}
+    expected="$OUT_DIR/$out_name"
+    actual="out_${total}.txt"
 
-	echo -e "Test $total:\n\nInputs:"
-	cat $in_file
-	echo -e "Expected:"
-	cat $expected
+    echo -e "Test $total:\n\nInputs:"
+    cat "$in_file"
+    echo -e "Expected:"
+    cat "$expected"
 
-	if ! $TIMEOUT_CMD ${TIMEOUT_SECS}s java "$MAIN_CLASS" < "$in_file" > "$actual" 2>"run_${total}.err"; then
-		echo "Result: RUNTIME_ERROR"
-		echo "Stderr:"; sed -n '1,200p' "run_${total}.err"
-		continue
-	fi
+    # CORREÇÃO AQUI: Adicionado -Dfile.encoding=UTF-8
+    if ! $TIMEOUT_CMD ${TIMEOUT_SECS}s java -Dfile.encoding=UTF-8 "$MAIN_CLASS" < "$in_file" > "$actual" 2>"run_${total}.err"; then
+        echo "Result: RUNTIME_ERROR"
+        echo "Stderr:"; sed -n '1,200p' "run_${total}.err"
+        continue
+    fi
 
-	if [ ! -f "$expected" ]; then
-		echo "Result: expected file $expected not found -> counted as wrong"
-		continue
-	fi
+    if [ ! -f "$expected" ]; then
+        echo "Result: expected file $expected not found -> counted as wrong"
+        continue
+    fi
 
-	echo -e "Actual:"
-	cat $actual
+    echo -e "Actual:"
+    cat "$actual"
 
+    normalize "$expected"
+    normalize "$actual"
 
-	normalize "$expected"
-	normalize "$actual"
-
-
-	if cmp -s "$expected.norm" "$actual.norm"; then
-		echo "Result: OK"
-		passed=$((passed + 1))
-	else
-		echo "Result: FAIL"
-		echo "--- expected ---"
-		cat "$expected"
-		#echo
-		echo "--- actual ---"
-		cat "$actual" 
-		#echo
-		echo "--- diff ---"
-		diff -u "$expected" "$actual" || true
-		#echo
-		echo "------------"
-	fi
-	echo -e "\n\n"
+    if cmp -s "$expected.norm" "$actual.norm"; then
+        echo "Result: OK"
+        passed=$((passed + 1))
+    else
+        echo "Result: FAIL"
+        echo "--- expected ---"
+        cat "$expected"
+        echo "--- actual ---"
+        cat "$actual" 
+        echo "--- diff ---"
+        diff -u "$expected.norm" "$actual.norm" || true
+        echo "------------"
+    fi
+    echo -e "\n\n"
 done
 
 if [ $total -eq 0 ]; then
-	echo "Nenhum caso de teste encontrado em $IN_DIR"
-	echo "0%"
-	exit 5
+    echo "Nenhum caso de teste encontrado em $IN_DIR"
+    echo "0%"
+    exit 5
 fi
 
 percent=$(( passed * 100 / total ))
