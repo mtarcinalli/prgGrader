@@ -14,14 +14,16 @@ shopt -s nullglob
 JAVA_FILES=("$SUBMISSION_DIR"/*.java)
 if [ ${#JAVA_FILES[@]} -eq 0 ]; then
 	echo "ERROR: nenhum arquivo .java encontrado em $SUBMISSION_DIR"
+	echo "0%"
 	exit 1
 fi
 
 # Compile
 echo "Compilando..."
-if ! javac *.java 2>compile.err; then
+if ! javac -encoding UTF-8 *.java 2>compile.err; then
 	echo "COMPILE_ERROR"
 	cat compile.err
+	echo "0%"
 	exit 2
 fi
 
@@ -40,6 +42,7 @@ if [ -z "$MAIN_CLASS" ]; then
 		MAIN_CLASS="${first_class%.class}"
 	else
 		echo "ERROR: nenhuma classe compilada encontrada"
+		echo "0%"
 		exit 3
 	fi
 fi
@@ -49,6 +52,7 @@ echo "Usando classe principal: $MAIN_CLASS"
 # Run tests
 if [ ! -d "$IN_DIR" ]; then
 	echo "WARNING: diretório de entrada $IN_DIR não existe ou vazio"
+	echo "0%"
 	exit 4
 fi
 
@@ -57,7 +61,7 @@ total=0
 passed=0
 
 normalize() {
-	sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' > "$1.norm"
+	sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' | sed -e :a -e '/^\n*$/{$d;N;ba;}'  > "$1.norm"
 }
 
 for in_file in "${inputs[@]}"; do
@@ -97,18 +101,23 @@ for in_file in "${inputs[@]}"; do
 		passed=$((passed + 1))
 	else
 		echo "Result: FAIL"
-		echo "--- expected (first 200 chars) ---"
-		head -c 200 "$expected" || true
-		echo
-		echo "--- actual (first 200 chars) ---"
-		head -c 200 "$actual" || true
-		echo
+		echo "--- expected ---"
+		cat "$expected"
+		#echo
+		echo "--- actual ---"
+		cat "$actual" 
+		#echo
+		echo "--- diff ---"
+		diff -u "$expected" "$actual" || true
+		#echo
+		echo "------------"
 	fi
 	echo -e "\n\n"
 done
 
 if [ $total -eq 0 ]; then
 	echo "Nenhum caso de teste encontrado em $IN_DIR"
+	echo "0%"
 	exit 5
 fi
 
