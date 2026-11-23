@@ -14,6 +14,7 @@ shopt -s nullglob
 C_FILES=("$SUBMISSION_DIR"/*.c)
 if [ ${#C_FILES[@]} -eq 0 ]; then
 	echo "ERROR: nenhum arquivo .c encontrado em $SUBMISSION_DIR"
+	echo "0%"
 	exit 1
 fi
 
@@ -24,6 +25,7 @@ EXEC_PATH="$SUBMISSION_DIR/$MAIN_EXEC"
 if ! gcc "${C_FILES[@]}" -std=c99 -O2 -Wall -Wextra -o "$EXEC_PATH" -lm 2>compile.err; then
 	echo "COMPILE_ERROR"
 	cat compile.err
+	echo "0%"
 	exit 2
 fi
 # garantir permissão de execução
@@ -32,6 +34,7 @@ chmod +x "$EXEC_PATH" || true
 # Run tests
 if [ ! -d "$IN_DIR" ]; then
 	echo "WARNING: diretório de entrada $IN_DIR não existe ou vazio"
+	echo "0%"
 	exit 4
 fi
 
@@ -40,7 +43,7 @@ total=0
 passed=0
 
 normalize() {
-	sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' > "$1.norm"
+	sed 's/\r$//' "$1" | sed 's/[[:space:]]\+$//' | sed -e :a -e '/^\n*$/{$d;N;ba;}'  > "$1.norm"
 }
 
 for in_file in "${inputs[@]}"; do
@@ -79,19 +82,21 @@ for in_file in "${inputs[@]}"; do
 		echo "Result: OK"
 		passed=$((passed + 1))
 	else
-		echo "Result: FAIL"
-		echo "--- expected (first 200 chars) ---"
-		head -c 200 "$expected" || true
-		echo
-		echo "--- actual (first 200 chars) ---"
-		head -c 200 "$actual" || true
-		echo
+        echo "Result: FAIL"
+        echo "--- expected ---"
+        cat "$expected"
+        echo "--- actual ---"
+        cat "$actual" 
+        echo "--- diff ---"
+        diff -u "$expected.norm" "$actual.norm" || true
+        echo "------------"
 	fi
 	echo -e "\n\n"
 done
 
 if [ $total -eq 0 ]; then
 	echo "Nenhum caso de teste encontrado em $IN_DIR"
+	echo "0%"
 	exit 5
 fi
 
