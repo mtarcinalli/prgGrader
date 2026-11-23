@@ -67,7 +67,8 @@ if ($showHeader) {
 				<li><a href="cadturma.php">Turmas</a></li>
 				<li><a href="cadaluno.php">Usuários</a></li>
 				<li><a href="cadplugin.php">Corretores</a></li>
-				<li><a href="cadtarefa.php">Tarefas</a></li>
+				<li><a href="cadtarefa.php">Gerenciar Tarefas</a></li>
+				<li><a href="cadtarefaturma.php">Atribuir Tarefas</a></li>
 				<li><a href="relnotas.php">Notas</a></li>
 			<?php } ?>
 		</ul>
