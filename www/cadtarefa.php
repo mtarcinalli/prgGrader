@@ -29,6 +29,7 @@ class Formulario {
 					"instrucoes = :instrucoes, " .
 					"tipoarquivo = :tipoarquivo, " .
 					"arquivocompactado = :arquivocompactado, " .
+					"promptanalisellm = :promptanalisellm, " .
 					"observacao = :observacao " .
 					"WHERE codtarefa = :cp";
 			$stmt = $db->prepare($cmd);
@@ -38,9 +39,9 @@ class Formulario {
 			$cp = $_REQUEST['cp'];
 		} else {
 			$cmd = "INSERT INTO tarefa " .
-				"(codplugin, descricao, sigla, instrucoes, tipoarquivo, arquivocompactado, observacao) " .
+				"(codplugin, descricao, sigla, instrucoes, tipoarquivo, arquivocompactado, promptanalisellm, observacao) " .
 				"VALUES " .
-				"(:codplugin, :descricao, :sigla, :instrucoes, :tipoarquivo, :arquivocompactado, :observacao) ";
+				"(:codplugin, :descricao, :sigla, :instrucoes, :tipoarquivo, :arquivocompactado, :promptanalisellm, :observacao) ";
 			$stmt = $db->prepare($cmd);
 			$acao = "incluir";
 		}
@@ -50,6 +51,7 @@ class Formulario {
 		$stmt->bindValue(':instrucoes', $_REQUEST['instrucoes'], PDO::PARAM_STR);
 		$stmt->bindValue(':tipoarquivo', $_REQUEST['tipoarquivo'], PDO::PARAM_STR);
 		$stmt->bindValue(':arquivocompactado', isset($_REQUEST['arquivocompactado']) ? $_REQUEST['arquivocompactado'] : 0, PDO::PARAM_INT);
+		$stmt->bindValue(':promptanalisellm', $_REQUEST['promptanalisellm'], PDO::PARAM_STR);
 		$stmt->bindValue(':observacao', $_REQUEST['observacao'], PDO::PARAM_STR);
 		$ok = $stmt->execute();
 		if (! $cp && $ok) {
@@ -217,6 +219,11 @@ class Formulario {
 				<input type="file" name="arquivo" id="arquivo" accept=".zip" class="form-control">
 				<label for="arquivo">Arquivo modelo aluno:</label>
 				<input type="file" name="arquivoaluno" id="arquivoaluno" accept=".zip" class="form-control">
+				<label for="promptanalisellm">Prompt de análise LLM:</label>
+				<textarea name="promptanalisellm" id="promptanalisellm" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["promptanalisellm"] : ""); ?></textarea>
+				Utilize {codigoAluno} para inserir o código do aluno, {enunciado} para inserir o enunciado da tarefa e {outputCorrecao} para inserir a saída da correção.
+				<br>
+				<br>
 				<label for="observacao">Observações:</label>
 				<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTbl) ? $rowTbl["observacao"] : ""); ?></textarea>
 				<input type="hidden" name="cp" value="<?php echo (isset($_REQUEST['cod']) ? $_REQUEST['cod'] : ""); ?>">
