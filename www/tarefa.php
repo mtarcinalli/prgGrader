@@ -72,9 +72,7 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 	$tblTarefaTurmaAluno->execute();
 	$rowTarefaTurmaAluno = $tblTarefaTurmaAluno->fetch();
 	$uploaddir = $rowTarefaTurmaAluno['diretorio'] . "/";
-	$uploadfile = $uploaddir . "arquivo.zip";
 	$originalName = basename($_FILES['arquivo']['name']);
-	$uploadfile = $uploaddir . $originalName;
 	$codtarefa = $rowTarefaTurmaAluno['codtarefa'];
 	$codplugin = $rowTarefaTurmaAluno['codplugin'];
 	$arquivoCompactado = $rowTarefaTurmaAluno['arquivocompactado'];
@@ -83,6 +81,11 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 		if(is_file($file)) {
 			unlink($file);
 		}
+	}
+	if ($arquivoCompactado == 1) {
+		$uploadfile = $uploaddir . "arquivo.zip";
+	} else {
+		$uploadfile = $uploaddir . $originalName;
 	}
 	if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $uploadfile)) {
 		echo "<div class=\"alert alert-danger\" role=\"alert\">Erro ao enviar arquivo!</div>";
@@ -103,6 +106,9 @@ function enviaTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"dataentrega = CURRENT_DATE, " .
 			"datahoraentrega = CURRENT_TIMESTAMP, " .
 			"nomearquivo = :nomearquivo, " .
+			"analisellm = '', " .
+			"notallm = null, " .
+			"geradoia = null, " .
 			"nota = :nota " .
 			"WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
 	$query = $db->prepare($comando);
@@ -183,28 +189,48 @@ function detalheTarefa($db, $codtarefaturmaaluno, $codaluno) {
 			"</tr><tr>" .
 			"<td colspan='2'><b>Nota:</b> $rowTarefaTurmaAluno[nota]</td>".			
 			"</tr></table>";
-	$de = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datainicio"]);
-	$ate = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datafim"]);
-	$hoje = date_create_from_format('d/m/Y', date('d/m/Y'));
+	
+	$timezone = new DateTimeZone('America/Sao_Paulo');
+	$hoje = (new DateTime('today', $timezone));
+	$de = DateTime::createFromFormat('d/m/Y', $rowTarefaTurmaAluno["datainicio"], $timezone);
+	if ($de) {
+		$de->setTime(0, 0, 0);
+	}
+	$ate = DateTime::createFromFormat('d/m/Y', $rowTarefaTurmaAluno["datafim"], $timezone);
+	if ($ate) {
+		$ate->setTime(23, 59, 59); 
+	}
+	#$de = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datainicio"]);
+	#$ate = date_create_from_format('d/m/Y', $rowTarefaTurmaAluno["datafim"]);
+	#$hoje = date_create_from_format('d/m/Y', date('d/m/Y'));
 	if ($hoje < $de or $hoje > $ate) {
 		echo "<h4>Fora do prazo de envio!</h4>";
 	} else {
 		formTarefa($codtarefaturmaaluno, $codaluno, $tipoArquivo);
 	}
-	echo "<h3>Resultado último envio:</h3>";
-	$res = $rowTarefaTurmaAluno["resultados"];
 	# ocultando saida
-	if ($rowTarefaTurmaAluno['retorno'] == 0) {
-		$res = substr($res, 0, strpos($res, "===="));
-	}
-	echo "<pre>$res</pre>";
-	echo "<h3>Arquivos enviados:</h3>";
+	#echo "<pre>";
+	#echo $cmd;
+	#echo "\n\n";
+	#print_r($rowTarefaTurmaAluno);
+	#echo "</pre>";
 
-	echo "Diretório: TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]\n";
+	if ($rowTarefaTurmaAluno['retorno'] == 1) {
+		echo "<h3>Resultado último envio:</h3>";
+		$res = $rowTarefaTurmaAluno["resultados"];
+		#$res = substr($res, 0, strpos($res, "===="));
+		#$res = explode("====", $res ?? '')[0];
+		echo "<pre>retorno:\n$res</pre>";
+	}
+	
+	#echo "<h3>Arquivos enviados:</h3>";
+
+	#echo "Diretório: TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]\n";
 	$diretorio = "../uploads/CURSO$rowTarefaTurmaAluno[codcurso]/TURMA$rowTarefaTurmaAluno[codturma]/TTURMA$rowTarefaTurmaAluno[codtarefaturma]/TTALUNO$rowTarefaTurmaAluno[codtarefaturmaaluno]";
 
 
-	foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaAluno["resultados"]) as $linha){
+	foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaAluno["resultados"] ?? '') as $linha){
+	#foreach(preg_split("/((\r?\n)|(\r\n?))/", $rowTarefaTurmaAluno["resultados"]) as $linha){
 		// do stuff with $line
 		if ((strpos($linha, "  inflating:") !== FALSE && strpos($linha, ".exe") === FALSE)) {
 			echo "\n<tr><td colspan='5'><pre>";
@@ -258,7 +284,7 @@ function listaTarefas($db, $codaluno) {
 			"<th>ENTREGA</th>" .
 			"<th>TENTATIVAS</th>" .
 			"<th>NOTA*</th>" .
-			"<th>NOTA FINAL**</th>" .
+			#"<th>NOTA FINAL**</th>" .
 			"</tr>";
 	while ($rowTarefas = $tblTarefas->fetch()) {
 		echo "<tr>" .
@@ -272,7 +298,7 @@ function listaTarefas($db, $codaluno) {
 				"<td>$rowTarefas[dataentrega]</td>".
 				"<td>$rowTarefas[entregas]</td>".
 				"<td>$rowTarefas[nota]</td>" .
-				"<td>$rowTarefas[notafinal]</td>" .
+				#"<td>$rowTarefas[notafinal]</td>" .
 				"</tr>";
 	}
 	echo "</table>*NOTA PRELIMINAR CORREÇÃO AUTOMÁTICA<br>**NOTA APÓS CORREÇÃO<br>";
