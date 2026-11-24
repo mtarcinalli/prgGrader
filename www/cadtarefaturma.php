@@ -1,5 +1,7 @@
 <?php require_once 'header.php';
 
+require_once 'formulaevaluator.php';
+
 if ($codtipousuario > 3) {
 	die;
 }
@@ -148,6 +150,63 @@ class Form {
 		}
 	}
 
+
+	function processarNotas() {
+		$db = $this->db;
+		$ok = true;
+		$formula = $_POST['formula'];
+
+		$lexer = new FormulaLexer();
+		$tokens = $lexer->tokenize($formula);
+		
+		#echo "<pre>";
+		#echo "Fórmula: $formula\n";
+		foreach ($_POST as $key => $value) {
+			if (substr($key, 0 ,3) == "nf-") {
+				$cod = explode("-", $key);
+				$codtarefaturmaaluno = $cod[1];
+				$cmd = "SELECT codtarefaturmaaluno, codtarefaturma, codaluno, nota, notallm, plagiomoss, geradoia, notafinal FROM tarefaturmaaluno WHERE codtarefaturmaaluno = :codtarefaturmaaluno";
+				$stmt = $db->prepare($cmd);
+				$stmt->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
+				$stmt->execute();
+				$row = $stmt->fetch();
+				#print_r($row);
+				#echo "cod: $codtarefaturmaaluno, nota: $row[nota], notallm: $row[notallm], plagiomoss: $row[plagiomoss], geradoia: $row[geradoia], notafinal: $row[notafinal]<br>";
+				#break;
+
+				$evaluator = new FormulaEvaluator($tokens, [
+					'nota' => ($row["nota"] ? $row["nota"] : 0),
+					'nota_llm' => ($row["notallm"] ? $row["notallm"] : 0),
+					'moss' => ($row["plagiomoss"] ? $row["plagiomoss"] : 0),
+					'ia' => ($row["geradoia"] ? $row["geradoia"] : 0),
+				]);
+
+				$notaFinal = $evaluator->evaluate();
+				#echo $notaFinal;
+				#echo "<br>";
+
+				$cmd = "UPDATE tarefaturmaaluno SET notafinal = :notafinal where codtarefaturmaaluno = :codtarefaturmaaluno";
+				$stmt = $db->prepare($cmd);
+				$stmt->bindValue(':notafinal', $notaFinal, PDO::PARAM_INT);
+				$stmt->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
+				$ok1 = $stmt->execute();
+				if (! $ok1) {
+					$ok = false;
+				}
+				#break;
+			}
+		}
+		#echo "</pre>";
+		#echo "<pre>";
+		#print_r($_REQUEST);
+		#echo "</pre>";
+		if ($ok) {
+			echo "<div class=\"alert alert-success\" role=\"alert\">Notas finais processadas com sucesso!</div>";
+		} else {
+			echo "<div class=\"alert alert-danger\" role=\"alert\">Erro processar notas finais!</div>";
+		}
+	}
+
 	function salvarNotas() {
 		$db = $this->db;
 		$ok = true;
@@ -158,7 +217,7 @@ class Form {
 					$cmd = "UPDATE tarefaturmaaluno SET notafinal = :notafinal where codtarefaturmaaluno = :codtarefaturmaaluno";
 					$stmt = $db->prepare($cmd);
 					$stmt->bindValue(':notafinal', $value, PDO::PARAM_INT);
-					$stmt->bindValue(':codtarefaturmaaluno', $cod[1], PDO::PARAM_INT);
+					$stmt->bindValue(':codtarefaturmaaluno', $codtarefaturmaaluno, PDO::PARAM_INT);
 					$ok1 = $stmt->execute();
 					if (! $ok1) {
 						$ok = false;
@@ -299,10 +358,10 @@ class Form {
 			</div>
 			<div class="form-group">
 				<label for="observacao" class="col-sm-2 control-label">Observações:</label>
-				<div class="col-sm-9">
+				<div class="col-sm-8">
 					<textarea name="observacao" id="observacao" class="form-control"><?php echo (isset($rowTurma) ? $rowTurma["observacao"] : ""); ?></textarea>
 				</div>
-				<div class="col-sm-1">
+				<div class="col-sm-2">
 					<?php
 					if ($this->modo == "alterar") {
 						echo "<input type=\"hidden\" name=\"codtarefaturma\" value=\"$rowTurma[codtarefaturma]\">";
@@ -310,6 +369,7 @@ class Form {
 					?>
 					<input type="hidden" name="modo" value="salvar">
 					<button type="submit" class="btn btn-primary">Salvar</button>
+					<a href="cadtarefaturma.php" class="btn btn-default">Cancelar</a>
 				</div>
 			</div>
 		</form>
@@ -320,11 +380,13 @@ class Form {
 	function listar() {
 		$db = $this->db;
 
-		$codcursoFiltro = isset($_GET['codcurso']) && $_GET['codcurso'] !== '' ? (int)$_GET['codcurso'] : 0;
-		$codturmaFiltro = isset($_GET['codturma']) && $_GET['codturma'] !== '' ? (int)$_GET['codturma'] : 0;
-		$codtarefaFiltro = isset($_GET['codtarefa']) && $_GET['codtarefa'] !== '' ? (int)$_GET['codtarefa'] : 0;
-
+		$codcursoFiltro = isset($_REQUEST['codcurso']) && $_REQUEST['codcurso'] !== '' ? (int)$_REQUEST['codcurso'] : 0;
+		$codturmaFiltro = isset($_REQUEST['codturma']) && $_REQUEST['codturma'] !== '' ? (int)$_REQUEST['codturma'] : 0;
+		$codtarefaFiltro = isset($_REQUEST['codtarefa']) && $_REQUEST['codtarefa'] !== '' ? (int)$_REQUEST['codtarefa'] : 0;
 		?>
+		<?php if ($this->modo != "novo" && $this->modo != "alterar") { ?>
+			<p><a href="cadtarefaturma.php?modo=novo" class="btn btn-success">Nova atribuição</a></p>
+		<?php } ?>
 		<form action="cadtarefaturma.php" method="get" role="form" class="form-horizontal">
 			<div class="form-group">
 				<label for="filtro-codcurso" class="col-sm-1 control-label">Curso:</label>
@@ -470,9 +532,11 @@ class Form {
 				<td></td>
 				<td colspan="6"><a href="#alunos<?php echo $row['codtarefaturma']; ?>" data-toggle="collapse"><span class="ion-ios-arrow-down"></span>Alunos:</a></h4></td>
 				<td>
-					<input type="hidden" name="codtarefa" value="<?php echo $row['codtarefa']; ?>">
+					<input type="hidden" name="codcurso" value="<?php echo $codcursoFiltro; ?>">
+					<input type="hidden" name="codturma" value="<?php echo $codturmaFiltro; ?>">	
+					<input type="hidden" name="codtarefa" value="<?php echo $codtarefaFiltro; ?>">
 					<input type="hidden" name="modo" value="salvarNotas">
-					<button type="submit" class="btn btn-secondary">Salvar Notas</button>
+					<button type="submit" class="btn btn-secondary" onclick="this.form.elements['modo'].value='salvarNotas'">Salvar Notas</button>
 				</td>
 			</tr>
 			<tr>
@@ -501,6 +565,12 @@ class Form {
 						$tblAlunos->execute();
 						echo "";
 						echo "<table class=\"table table-striped\" style=\"table-layout:fixed; word-wrap:break-word;\">" .
+							"<tr>" .
+							"<th>Fórmula:</th>" .
+							"<th colspan=\"5\"><input type=\"text\" id=\"formula\" name=\"formula\" class=\"form-control\" value=\"=SE(OU(MOSS > 40; IA > 80); 0; MAX(NOTA; NOTA_LLM))\"></th>" .
+							"<th colspan=\"2\"><button type=\"submit\" class=\"btn btn-secondary\" onclick=\"this.form.elements['modo'].value='processarNotas'\">Processar Notas</button></th>" .
+							"<th colspan=\"2\"><button type=\"submit\" class=\"btn btn-secondary\" onclick=\"this.form.elements['modo'].value='salvarNotas'\">Salvar Notas</button></th>" .
+							"</tr>" .
 							"<tr>" .
 							"<th></th>" .
 							"<th></th>" .
@@ -1017,6 +1087,9 @@ class Form {
 		if ($this->modo == "salvarNotas") {
 			$this->salvarNotas();
 		}
+		if ($this->modo == "processarNotas") {
+			$this->processarNotas();
+		}
 		if ($this->modo == "exclui") {
 			$this->excluir();
 		}
@@ -1033,8 +1106,9 @@ class Form {
 		if ($this->modo == "llm") {
 			$this->formulario($headerMode = true);
 			$this->llm();
+		} if ($this->modo == "novo" || $this->modo == "alterar") {
+				$this->formulario();
 		} else {
-			$this->formulario();
 			$this->listar();
 		}
 	}
